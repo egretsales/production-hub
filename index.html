@@ -1023,6 +1023,21 @@ textarea { resize: vertical; min-height: 70px; }
 .approval-mini .value { font-family:'JetBrains Mono',monospace; font-size:1.2rem; color:var(--text); font-weight:700; }
 .approval-empty { padding:28px; text-align:center; color:var(--text3); }
 
+
+/* ── DAILY PRODUCTION PLAN ── */
+.plan-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.plan-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.plan-summary-card .label{font-size:.72rem;color:var(--text2);margin-bottom:8px}
+.plan-summary-card .value{font-family:'JetBrains Mono',monospace;font-size:1.35rem;color:var(--text);font-weight:700}
+.plan-summary-card .sub{font-size:.72rem;color:var(--text3);margin-top:6px}
+.plan-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:.72rem;color:var(--text2)}
+.audit-mini-list{display:grid;gap:10px}
+.audit-mini-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px}
+.plan-row{display:grid;grid-template-columns:1.15fr .8fr .8fr 1.5fr auto;gap:8px;align-items:end;margin-bottom:10px}
+.plan-row-head{display:grid;grid-template-columns:1.15fr .8fr .8fr 1.5fr auto;gap:8px;margin-bottom:10px;color:var(--text3);font-size:.72rem}
+.plan-help{font-size:.74rem;color:var(--text3);line-height:1.7;margin-top:10px}
+.data-tip{margin-bottom:18px;padding:12px 16px;border-radius:12px;background:var(--surface2);border:1px dashed var(--border2);color:var(--text2);font-size:.8rem}
+
 </style>
 </head>
 <body>
@@ -1510,16 +1525,16 @@ textarea { resize: vertical; min-height: 70px; }
         <table>
           <thead>
             <tr>
-              <th>計畫編號</th>
               <th>訂單號</th>
-              <th>廠商</th>
-              <th>產品</th>
-              <th>計畫量</th>
-              <th>已完成</th>
-              <th>進度</th>
-              <th>開始日</th>
-              <th>預計完工</th>
-              <th>備註</th>
+              <th>產品 / 客戶</th>
+              <th>已分派廠商 / 製程</th>
+              <th>需求量</th>
+              <th>已排程量</th>
+              <th>實際量</th>
+              <th>剩餘量</th>
+              <th>完成率</th>
+              <th>首個排程日</th>
+              <th>操作</th>
             </tr>
           </thead>
           <tbody id="plan-tbody"></tbody>
@@ -2491,31 +2506,71 @@ async function approvePendingUser(uid){
   if (!req) return alert('找不到申請資料');
   const type = req.requestType === 'vendor' ? 'vendor' : 'client';
   try {
-    let patch = {
-      role: type,
-      status: 'active',
-      approvedAt: new Date().toISOString().slice(0,16).replace('T',' '),
-      approvedBy: getCurrentUser().email || getCurrentUser().name || 'admin'
-    };
+    const now = new Date().toISOString().slice(0,16).replace('T',' ');
+    const approver = getCurrentUser().email || getCurrentUser().name || 'admin';
+
+    // 1. 產生 ID
+    let entityId, entityRow;
     if (type === 'client') {
-      const clientId = nextEntityId('C', CLIENTS);
-      patch.clientId = clientId;
-      const clientRow = { id: clientId, name: req.companyName || req.name || ('客戶 ' + clientId) };
-      CLIENTS.push(clientRow);
-      if (window.firestoreDb) await window.firestoreDb.collection('clients').doc(clientId).set(clientRow, { merge:true });
+      entityId = nextEntityId('C', CLIENTS);
+      entityRow = { id: entityId, name: req.companyName || req.name || ('客戶 ' + entityId) };
     } else {
-      const vendorId = nextEntityId('V', DB.vendors || []);
-      patch.vendorId = vendorId;
-      const vendorRow = { id: vendorId, name: req.companyName || req.name || ('廠商 ' + vendorId), type:'待補資料', contact:req.name || '', phone:req.phone || '', capacity:0, status:'合作中', notes:req.notes || '' };
-      DB.vendors.push(vendorRow);
-      if (window.firestoreDb) await window.firestoreDb.collection('vendors').doc(vendorId).set(vendorRow, { merge:true });
+      entityId = nextEntityId('V', DB.vendors || []);
+      entityRow = {
+        id: entityId,
+        name: req.companyName || req.name || ('廠商 ' + entityId),
+        type: '待補資料',
+        contact: req.name || '',
+        phone: req.phone || '',
+        capacity: 0,
+        status: '合作中',
+        notes: req.notes || ''
+      };
     }
-    if (window.firestoreDb) await window.firestoreDb.collection('users').doc(uid).set(patch, { merge:true });
-    Object.assign(req, patch);
+
+    // 2. 寫入 Firebase（有連線才寫）
+    if (window.firestoreDb) {
+      const col = type === 'client' ? 'clients' : 'vendors';
+      await window.firestoreDb.collection(col).doc(entityId).set(entityRow, { merge:true });
+      const idField = type === 'client' ? 'clientId' : 'vendorId';
+      await window.firestoreDb.collection('users').doc(uid).set(
+        { role: type, status: 'active', [idField]: entityId, approvedAt: now, approvedBy: approver },
+        { merge:true }
+      );
+    }
+
+    // 3. 寫入本地 DB（demo / offline 模式也完整執行）
+    if (type === 'client') {
+      if (!CLIENTS.find(c => c.id === entityId)) CLIENTS.push(entityRow);
+    } else {
+      if (!DB.vendors.find(v => v.id === entityId)) DB.vendors.push(entityRow);
+    }
+
+    // 4. 更新 pendingUsers 記錄 → status 改為 'approved'（不是 'pending'）
+    const idField = type === 'client' ? 'clientId' : 'vendorId';
+    Object.assign(req, {
+      role: type,
+      status: 'approved',
+      [idField]: entityId,
+      approvedAt: now,
+      approvedBy: approver
+    });
+
+    // 5. 若 DB.users 裡有同筆也更新，避免 getCurrentUser() 還回傳 pending
+    const userInDB = (DB.users || []).find(u => u.id === uid);
+    if (userInDB) {
+      Object.assign(userInDB, { role: type, status: 'active', [idField]: entityId, approvedAt: now, approvedBy: approver });
+    }
+
+    // 6. 刷新所有 UI
     renderApprovals();
     renderAlliances();
     populateVendorSelects();
-    alert('已核准並開通帳號');
+    const stillPending = (DB.pendingUsers || []).filter(x => (x.status||'pending') === 'pending').length;
+    const badge = document.getElementById('approval-badge');
+    if (badge) badge.textContent = String(stillPending);
+
+    alert('✅ 已核准並開通帳號！\n\n身份：' + (type==='client'?'客戶':'廠商') + '\n分配 ID：' + entityId + '\n名稱：' + entityRow.name + '\n\n對方下次登入即可正常使用。');
   } catch (e) {
     alert('核准失敗：' + (e?.message || e));
   }
@@ -2871,6 +2926,557 @@ function bootApp(){
 window.addEventListener('DOMContentLoaded', () => {
   bootApp();
 });
+</script>
+
+
+<style id="workflow-v10-style">
+.workflow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.workflow-mini{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.workflow-mini .label{font-size:.72rem;color:var(--text2);margin-bottom:6px}.workflow-mini .value{font-size:1.15rem;font-family:'JetBrains Mono',monospace;font-weight:700}
+.flow-badges{display:flex;flex-wrap:wrap;gap:6px}.soft-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:.7rem;color:var(--text2)}
+.audit-list{display:grid;gap:10px}.audit-item{padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface2)}
+.audit-item .meta{font-size:.72rem;color:var(--text3);margin-bottom:4px}.audit-item .title{font-weight:700;font-size:.84rem;color:var(--text)}
+.table-actions{display:flex;flex-wrap:wrap;gap:6px}
+
+/* ── DAILY PRODUCTION PLAN ── */
+.plan-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+.plan-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
+.plan-summary-card .label{font-size:.72rem;color:var(--text2);margin-bottom:8px}
+.plan-summary-card .value{font-family:'JetBrains Mono',monospace;font-size:1.35rem;color:var(--text);font-weight:700}
+.plan-summary-card .sub{font-size:.72rem;color:var(--text3);margin-top:6px}
+.plan-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);font-size:.72rem;color:var(--text2)}
+.audit-mini-list{display:grid;gap:10px}
+.audit-mini-item{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:12px}
+.plan-row{display:grid;grid-template-columns:1.15fr .8fr .8fr 1.5fr auto;gap:8px;align-items:end;margin-bottom:10px}
+.plan-row-head{display:grid;grid-template-columns:1.15fr .8fr .8fr 1.5fr auto;gap:8px;margin-bottom:10px;color:var(--text3);font-size:.72rem}
+.plan-help{font-size:.74rem;color:var(--text3);line-height:1.7;margin-top:10px}
+.data-tip{margin-bottom:18px;padding:12px 16px;border-radius:12px;background:var(--surface2);border:1px dashed var(--border2);color:var(--text2);font-size:.8rem}
+
+</style>
+<script id="workflow-v10-script">
+(function(){
+  const ORIG = {
+    loadFirestoreData: typeof loadFirestoreData !== 'undefined' ? loadFirestoreData : null,
+    saveOrderToFirestore: typeof saveOrderToFirestore !== 'undefined' ? saveOrderToFirestore : null,
+    renderDashboard: typeof renderDashboard !== 'undefined' ? renderDashboard : null,
+  };
+
+  function nowText(){ return new Date().toLocaleString('zh-TW',{hour12:false}).replace(/\//g,'-'); }
+  function actorInfo(){ const u=getCurrentUser()||{}; return { id:u.id||'', role:u.role||'', name:u.name||u.email||u.clientName||u.vendorId||'系統' }; }
+  function safeJsonCopy(obj){ return JSON.parse(JSON.stringify(obj)); }
+  function getForecastStatusPill(status){ return pill({submitted:'待審核',approved:'已轉正式單',rejected:'已退回'}[status]||status); }
+  function syncForecastStore(){ DB.forecasts = Array.isArray(DB.forecasts) ? DB.forecasts : []; }
+  function getAssignments(orderId){ return (DB.vendorAssignments||[]).filter(x=>x.orderId===orderId); }
+  function ensureOrderWorkflow(order){
+    order.flow = order.flow || {};
+    order.auditLog = Array.isArray(order.auditLog) ? order.auditLog : [];
+    const assignments = getAssignments(order.id);
+    const existing = Array.isArray(order.flow.vendorShipments) ? order.flow.vendorShipments : [];
+    const mapped = assignments.map(a=>{
+      const old = existing.find(x=>x.assignmentId===a.id) || existing.find(x=>x.vendorId===a.vendorId && x.phase===a.phase) || {};
+      return {
+        assignmentId: a.id,
+        vendorId: a.vendorId,
+        vendorName: getVendorName(a.vendorId),
+        phase: a.phase || '生產',
+        qty: a.qty || order.qty || 0,
+        shippedAt: old.shippedAt || '',
+        shippedBy: old.shippedBy || '',
+        shippedById: old.shippedById || '',
+        finished: !!old.shippedAt,
+        note: old.note || ''
+      };
+    });
+    order.flow.vendorShipments = mapped;
+    order.flow.internalReceipt = order.flow.internalReceipt || {receivedAt:'', receivedBy:'', receivedById:''};
+    order.flow.customerShipment = order.flow.customerShipment || {shippedAt:'', shippedBy:'', shippedById:''};
+    order.flow.customerReceipt = order.flow.customerReceipt || {confirmedAt:'', confirmedBy:'', confirmedById:''};
+    updateOrderStatusByFlow(order, false);
+    return order;
+  }
+  function ensureAllWorkflow(){
+    syncForecastStore();
+    DB.orders.forEach(ensureOrderWorkflow);
+  }
+  function updateOrderStatusByFlow(order, touchUpdated=true){
+    // Do NOT call ensureOrderWorkflow here — it already calls
+    // updateOrderStatusByFlow(order,false) at its end, causing infinite recursion.
+    if (!order.flow) order.flow = {};
+    const flow = order.flow;
+    const hasAssignments = flow.vendorShipments.length > 0;
+    const allVendorDone = hasAssignments && flow.vendorShipments.every(x=>!!x.shippedAt);
+    if (flow.customerReceipt.confirmedAt) order.status = '已結案';
+    else if (flow.customerShipment.shippedAt) order.status = '待客戶確認收貨';
+    else if (flow.internalReceipt.receivedAt) order.status = '待出貨給客戶';
+    else if (allVendorDone) order.status = '待我方收貨';
+    else if (hasAssignments) order.status = '生產中';
+    else order.status = '待發單';
+    if (touchUpdated) order.updatedAt = nowText();
+    return order.status;
+  }
+  function addAudit(order, action, detail){
+    const a=actorInfo();
+    order.auditLog = Array.isArray(order.auditLog) ? order.auditLog : [];
+    order.auditLog.unshift({at:nowText(), action, detail:detail||'', by:a.name, byId:a.id, role:a.role});
+  }
+  async function persistOrder(order){
+    ensureOrderWorkflow(order); updateOrderStatusByFlow(order);
+    if (window.APP_MODE?.firebaseLive && window.firestoreDb) {
+      await window.firestoreDb.collection('orders').doc(order.id).set(safeJsonCopy(order), {merge:true});
+    }
+  }
+  async function persistForecast(f){
+    if (window.APP_MODE?.firebaseLive && window.firestoreDb) {
+      await window.firestoreDb.collection('forecasts').doc(f.id).set(safeJsonCopy(f), {merge:true});
+    }
+  }
+  async function persistAssignment(asg){
+    if (window.APP_MODE?.firebaseLive && window.firestoreDb) {
+      await window.firestoreDb.collection('vendor_assignments').doc(asg.id).set(safeJsonCopy(asg), {merge:true});
+    }
+  }
+
+  function workflowSummary(order){
+    ensureOrderWorkflow(order);
+    const flow = order.flow;
+    return [
+      flow.vendorShipments.length ? `廠商 ${flow.vendorShipments.filter(x=>x.shippedAt).length}/${flow.vendorShipments.length} 完成` : '未分派廠商',
+      flow.internalReceipt.receivedAt ? `我方收貨 ${flow.internalReceipt.receivedAt}` : '未我方收貨',
+      flow.customerShipment.shippedAt ? `已出貨客戶 ${flow.customerShipment.shippedAt}` : '未出貨客戶',
+      flow.customerReceipt.confirmedAt ? `客戶已收貨 ${flow.customerReceipt.confirmedAt}` : '客戶未收貨'
+    ].join(' / ');
+  }
+  function renderForecastClient(){
+    const tbody=document.getElementById('forecast-client-tbody'); if(!tbody) return;
+    const u=getCurrentUser();
+    const rows=(DB.forecasts||[]).filter(f=>u.role==='admin' || f.clientId===u.clientId).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+    tbody.innerHTML = rows.map(f=>`<tr><td style="font-family:'JetBrains Mono',monospace">${f.id}</td><td>${safe(f.product)}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${Number(f.qty||0).toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace">${f.targetDate||'—'}</td><td>${getForecastStatusPill(f.status||'submitted')}</td><td style="font-family:'JetBrains Mono',monospace">${f.createdAt||'—'}</td><td>${safe(f.notes||'')}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">目前沒有 Forecast</td></tr>';
+  }
+  function renderForecastAdmin(){
+    const tbody=document.getElementById('forecast-admin-tbody'); if(!tbody) return;
+    const rows=(DB.forecasts||[]).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+    tbody.innerHTML = rows.map(f=>`<tr><td style="font-family:'JetBrains Mono',monospace">${f.id}</td><td>${safe(f.clientName||maskedClientLabel(f.clientId))}</td><td>${safe(f.product)}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${Number(f.qty||0).toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace">${f.targetDate||'—'}</td><td>${getForecastStatusPill(f.status||'submitted')}</td><td style="font-family:'JetBrains Mono',monospace">${f.createdAt||'—'}</td><td>${safe(f.createdByName||'')}</td><td><div class="table-actions">${(f.status||'submitted')==='submitted' ? `<button class="btn btn-outline btn-sm" onclick="approveForecastToOrder('${f.id}')">轉正式單</button><button class="btn btn-outline btn-sm" onclick="rejectForecast('${f.id}')">退回</button>` : `<span style="color:var(--text3);font-size:.76rem">${f.orderId ? '訂單 '+f.orderId : '已處理'}</span>`}</div></td></tr>`).join('') || '<tr><td colspan="9" class="empty">目前沒有 Forecast</td></tr>';
+  }
+  window.submitForecast = async function(){
+    const u=getCurrentUser();
+    if (u.role !== 'client') return alert('只有客戶可填 Forecast');
+    const product=document.getElementById('fc-product').value.trim();
+    const qty=parseInt(document.getElementById('fc-qty').value)||0;
+    const targetDate=document.getElementById('fc-date').value;
+    const notes=document.getElementById('fc-notes').value.trim();
+    if(!product || !qty || !targetDate) return alert('請填寫品項、數量、希望交期');
+    const a=actorInfo();
+    const f={id:'FC-'+Date.now(), clientId:u.clientId, clientName:u.clientName||CLIENTS.find(c=>c.id===u.clientId)?.name||'', product, qty, targetDate, notes, status:'submitted', createdAt:nowText(), createdBy:a.id, createdByName:a.name};
+    DB.forecasts.unshift(f); await persistForecast(f);
+    ['fc-product','fc-qty','fc-date','fc-notes'].forEach(id=>document.getElementById(id).value='');
+    renderForecastClient(); renderForecastAdmin(); alert('Forecast 已送出');
+  }
+  window.approveForecastToOrder = async function(forecastId){
+    const f=(DB.forecasts||[]).find(x=>x.id===forecastId); if(!f) return;
+    const order={
+      id:'A-'+Date.now(), clientId:f.clientId, client:f.clientName||CLIENTS.find(c=>c.id===f.clientId)?.name||'', product:f.product, qty:f.qty, vendor:'', stock:0, planQty:f.qty, delivery:f.targetDate, shipDate:'', received:'', clientConfirm:'', status:'待發單', notes:f.notes||'', sourceForecastId:f.id, createdAt:nowText(), createdBy:actorInfo().name,
+      flow:{vendorShipments:[], internalReceipt:{receivedAt:'',receivedBy:'',receivedById:''}, customerShipment:{shippedAt:'',shippedBy:'',shippedById:''}, customerReceipt:{confirmedAt:'',confirmedBy:'',confirmedById:''}}, auditLog:[]
+    };
+    addAudit(order,'Forecast 轉正式訂單',`由 ${f.id} 建立正式訂單`);
+    DB.orders.unshift(order); updateOrderStatusByFlow(order);
+    f.status='approved'; f.orderId=order.id; f.approvedAt=nowText(); f.approvedBy=actorInfo().name;
+    await persistForecast(f); await persistOrder(order);
+    renderForecastAdmin(); renderOrders(); renderDashboard(); showAdminPage('orders');
+    alert('已建立正式訂單，下一步請分派廠商');
+  }
+  window.rejectForecast = async function(forecastId){ const f=(DB.forecasts||[]).find(x=>x.id===forecastId); if(!f) return; f.status='rejected'; f.rejectedAt=nowText(); f.rejectedBy=actorInfo().name; await persistForecast(f); renderForecastAdmin(); renderForecastClient(); };
+
+  window.openAssignVendorModal = function(orderId){
+    const modal=document.getElementById('modal-assign-vendor'); if(!modal) return;
+    document.getElementById('av-order-id').value=orderId;
+    const sel=document.getElementById('av-vendor');
+    sel.innerHTML=DB.vendors.map(v=>`<option value="${v.id}">${safe(v.name)}</option>`).join('');
+    modal.classList.add('open');
+  }
+  window.saveVendorAssignment = async function(){
+    const orderId=document.getElementById('av-order-id').value; const vendorId=document.getElementById('av-vendor').value; const phase=document.getElementById('av-phase').value.trim()||'生產'; const qty=parseInt(document.getElementById('av-qty').value)||0;
+    const order=DB.orders.find(o=>o.id===orderId); if(!order) return alert('找不到訂單');
+    const asg={id:'VA-'+Date.now(), orderId, vendorId, phase, qty: qty||order.qty, isPrimary: !(DB.vendorAssignments||[]).some(x=>x.orderId===orderId)};
+    DB.vendorAssignments=DB.vendorAssignments||[]; DB.vendorAssignments.push(asg);
+    if(!order.vendor) order.vendor=vendorId;
+    ensureOrderWorkflow(order); addAudit(order,'分派廠商',`${getVendorName(vendorId)} / ${phase} / ${asg.qty} pcs`); updateOrderStatusByFlow(order);
+    await persistAssignment(asg); await persistOrder(order);
+    document.getElementById('modal-assign-vendor').classList.remove('open');
+    document.getElementById('av-phase').value=''; document.getElementById('av-qty').value='';
+    renderOrders(); renderVendorTasks(); renderDashboard();
+  }
+  window.vendorCompleteShipment = async function(orderId, assignmentId){
+    const order=DB.orders.find(o=>o.id===orderId); if(!order) return;
+    ensureOrderWorkflow(order);
+    const item=order.flow.vendorShipments.find(x=>x.assignmentId===assignmentId); if(!item) return;
+    if(item.shippedAt) return alert('此項已完成出貨');
+    const a=actorInfo(); item.shippedAt=nowText(); item.shippedBy=a.name; item.shippedById=a.id; item.finished=true;
+    addAudit(order,'廠商完成出貨',`${item.vendorName} / ${item.phase}`);
+    updateOrderStatusByFlow(order); await persistOrder(order);
+    renderVendorTasks(); renderOrders(); renderDelivery(); renderClientOrders(); renderDashboard();
+  }
+  window.adminMarkInternalReceipt = async function(orderId){
+    const order=DB.orders.find(o=>o.id===orderId); if(!order) return; ensureOrderWorkflow(order);
+    if(!order.flow.vendorShipments.length || !order.flow.vendorShipments.every(x=>x.shippedAt)) return alert('需等全部廠商完成出貨後才能收貨');
+    if(order.flow.internalReceipt.receivedAt) return alert('已收貨');
+    const a=actorInfo(); order.flow.internalReceipt={receivedAt:nowText(), receivedBy:a.name, receivedById:a.id}; order.received=order.flow.internalReceipt.receivedAt;
+    addAudit(order,'我方收貨',`收貨人：${a.name}`); updateOrderStatusByFlow(order); await persistOrder(order);
+    renderOrders(); renderDelivery(); renderDashboard(); renderClientOrders();
+  }
+  window.adminShipToClient = async function(orderId){
+    const order=DB.orders.find(o=>o.id===orderId); if(!order) return; ensureOrderWorkflow(order);
+    if(!order.flow.internalReceipt.receivedAt) return alert('請先完成我方收貨');
+    if(order.flow.customerShipment.shippedAt) return alert('已出貨給客戶');
+    const a=actorInfo(); order.flow.customerShipment={shippedAt:nowText(), shippedBy:a.name, shippedById:a.id}; order.shipDate=order.flow.customerShipment.shippedAt;
+    addAudit(order,'出貨給客戶',`操作人：${a.name}`); updateOrderStatusByFlow(order); await persistOrder(order);
+    renderOrders(); renderDelivery(); renderDashboard(); renderClientOrders(); renderClientDelivery();
+  }
+  window.clientConfirmFinalReceipt = async function(orderId){
+    const order=DB.orders.find(o=>o.id===orderId); if(!order) return; ensureOrderWorkflow(order);
+    if(!order.flow.customerShipment.shippedAt) return alert('尚未出貨給客戶');
+    if(order.flow.customerReceipt.confirmedAt) return alert('已確認收貨');
+    const a=actorInfo(); order.flow.customerReceipt={confirmedAt:nowText(), confirmedBy:a.name, confirmedById:a.id}; order.clientConfirm=order.flow.customerReceipt.confirmedAt;
+    addAudit(order,'客戶確認收貨',`確認人：${a.name}`); updateOrderStatusByFlow(order); await persistOrder(order);
+    renderClientOrders(); renderClientDelivery(); renderOrders(); renderDelivery(); renderDashboard();
+  }
+  window.openAuditModal = function(orderId){
+    const order=DB.orders.find(o=>o.id===orderId); if(!order) return; ensureOrderWorkflow(order);
+    document.getElementById('audit-title').textContent = `流程紀錄｜${order.id}`;
+    const body=document.getElementById('audit-body');
+    const logs=(order.auditLog||[]).slice();
+    body.innerHTML = logs.length ? `<div class="audit-list">${logs.map(x=>`<div class="audit-item"><div class="meta">${x.at}｜${safe(x.by)}｜${safe(x.role)}</div><div class="title">${safe(x.action)}</div><div style="font-size:.82rem;color:var(--text2);margin-top:4px">${safe(x.detail||'')}</div></div>`).join('')}</div>` : '<div class="empty">尚無流程紀錄</div>';
+    document.getElementById('modal-audit').classList.add('open');
+  }
+
+  function vendorAssignmentSummary(order){
+    const items=(getAssignments(order.id)||[]).map(a=>`${getVendorName(a.vendorId)} / ${a.phase}`);
+    return items.length ? items.join('<br>') : '<span style="color:var(--text3)">尚未分派</span>';
+  }
+  function flowActionButtons(order){
+    const buttons=[]; ensureOrderWorkflow(order); const flow=order.flow;
+    buttons.push(`<button class="icon-btn" title="查看紀錄" onclick="openAuditModal('${order.id}')">🕓</button>`);
+    buttons.push(`<button class="icon-btn" title="分派廠商" onclick="openAssignVendorModal('${order.id}')">🏭</button>`);
+    if(flow.vendorShipments.length && flow.vendorShipments.every(x=>x.shippedAt) && !flow.internalReceipt.receivedAt) buttons.push(`<button class="icon-btn" title="我方收貨" onclick="adminMarkInternalReceipt('${order.id}')">📥</button>`);
+    if(flow.internalReceipt.receivedAt && !flow.customerShipment.shippedAt) buttons.push(`<button class="icon-btn" title="出貨給客戶" onclick="adminShipToClient('${order.id}')">🚚</button>`);
+    buttons.push(`<button class="icon-btn" title="編輯" onclick="editOrder('${order.id}')">✏</button>`);
+    return `<div class="actions">${buttons.join('')}</div>`;
+  }
+  renderOrders = function(){
+    ensureAllWorkflow();
+    const search = (document.getElementById('order-search')?.value || '').toLowerCase();
+    const statusF = document.getElementById('order-status-filter')?.value || '';
+    const vendorF = document.getElementById('order-vendor-filter')?.value || '';
+    const rows = DB.orders.filter(o => {
+      const vendorText = (getAssignments(o.id)||[]).map(a=>getVendorName(a.vendorId)).join(' ');
+      const m = !search || [o.id, o.client, o.product, vendorText].join(' ').toLowerCase().includes(search);
+      return m && (!statusF || o.status === statusF) && (!vendorF || (getAssignments(o.id)||[]).some(a=>a.vendorId===vendorF));
+    });
+    const tbody=document.getElementById('orders-tbody'); if(!tbody) return;
+    tbody.innerHTML = rows.map(o=>`<tr>
+      <td><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${o.id}</span><div style="font-size:.68rem;color:var(--text3);margin-top:4px">${o.sourceForecastId||'手動建單'}</div></td>
+      <td><strong>${safe(o.client)}</strong></td>
+      <td style="max-width:180px">${safe(o.product)}<div style="margin-top:4px;font-size:.72rem;color:var(--text3)">${workflowSummary(o)}</div></td>
+      <td style="font-family:'JetBrains Mono',monospace;text-align:right">${Number(o.qty||0).toLocaleString()}</td>
+      <td style="font-size:.78rem;line-height:1.6">${vendorAssignmentSummary(o)}</td>
+      <td>${stockCell(o.stock||0, o.qty||0)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;text-align:right">${Number(o.planQty||0).toLocaleString()}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:${isUrgent(o.delivery)?'var(--red)':'var(--text)'}">${o.delivery||'—'}</td>
+      <td>${o.flow?.customerReceipt?.confirmedAt ? `<span style="color:var(--green)">✓ ${o.flow.customerReceipt.confirmedAt}</span><div style="font-size:.68rem;color:var(--text3)">${safe(o.flow.customerReceipt.confirmedBy||'')}</div>` : '<span style="color:var(--text3)">待客戶收貨</span>'}</td>
+      <td>${pill(o.status)}</td>
+      <td>${flowActionButtons(o)}</td>
+    </tr>`).join('') || '<tr><td colspan="11" class="empty">沒有符合條件的訂單</td></tr>';
+  }
+  renderDelivery = function(){
+    ensureAllWorkflow();
+    const tbody=document.getElementById('delivery-tbody'); if(!tbody) return;
+    const tabMap = {all:()=>true,pending:o=>['待發單','生產中','待我方收貨'].includes(o.status),shipped:o=>!!o.flow?.customerShipment?.shippedAt && !o.flow?.customerReceipt?.confirmedAt,received:o=>!!o.flow?.internalReceipt?.receivedAt && !o.flow?.customerShipment?.shippedAt,done:o=>!!o.flow?.customerReceipt?.confirmedAt};
+    const rows=DB.orders.filter(tabMap[deliveryTab]||(()=>true));
+    tbody.innerHTML = rows.map(o=>`<tr><td><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${o.id}</span></td><td style="font-size:.78rem;line-height:1.5">${vendorAssignmentSummary(o)}</td><td>${safe(o.product)}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${Number(o.qty||0).toLocaleString()}</td><td>${(o.flow?.vendorShipments||[]).map(x=>x.shippedAt?`<div>${safe(x.vendorName)}：${x.shippedAt}</div>`:`<div style="color:var(--text3)">${safe(x.vendorName)}：未完成</div>`).join('')||'—'}</td><td>${o.flow?.internalReceipt?.receivedAt?`${o.flow.internalReceipt.receivedAt}<div style="font-size:.68rem;color:var(--text3)">${safe(o.flow.internalReceipt.receivedBy)}</div>`:`<button class="btn btn-outline btn-sm" onclick="adminMarkInternalReceipt('${o.id}')">我方收貨</button>`}</td><td>${o.flow?.customerShipment?.shippedAt?`${o.flow.customerShipment.shippedAt}<div style="font-size:.68rem;color:var(--text3)">${safe(o.flow.customerShipment.shippedBy)}</div>`:`<button class="btn btn-outline btn-sm" onclick="adminShipToClient('${o.id}')">出貨給客戶</button>`}</td><td>${o.flow?.customerReceipt?.confirmedAt?`${o.flow.customerReceipt.confirmedAt}<div style="font-size:.68rem;color:var(--text3)">${safe(o.flow.customerReceipt.confirmedBy)}</div>`:'<span style="color:var(--text3)">待客戶確認</span>'}</td><td>${o.flow?.customerReceipt?.confirmedAt ? '<span style="color:var(--green)">✓ 已確認</span>' : '<span style="color:var(--text3)">待確認</span>'}</td><td>${pill(o.status)}</td></tr>`).join('') || '<tr><td colspan="10" class="empty">此分類無資料</td></tr>';
+  }
+  renderClientOrders = function(){
+    ensureAllWorkflow();
+    const rows=getVisibleOrders();
+    document.getElementById('c-active').textContent = rows.filter(o=>o.status!=='已結案').length;
+    document.getElementById('c-done').textContent = rows.filter(o=>o.status==='已結案').length;
+    document.getElementById('c-soon').textContent = rows.filter(o=>isUrgent(o.delivery) && o.status!=='已結案').length;
+    const wrap=document.getElementById('client-orders-list'); if(!wrap) return;
+    wrap.innerHTML = rows.map(o=>{
+      const steps=[
+        {label:'Forecast', date:(DB.forecasts||[]).find(f=>f.id===o.sourceForecastId)?.createdAt||o.createdAt||'', done:true},
+        {label:'正式單', date:o.createdAt||'', done:true},
+        {label:'廠商完成', date:(o.flow.vendorShipments.every(x=>x.shippedAt)?o.flow.vendorShipments.map(x=>x.shippedAt).sort().slice(-1)[0]:'')||'', done:o.flow.vendorShipments.length>0 && o.flow.vendorShipments.every(x=>x.shippedAt)},
+        {label:'我方出貨', date:o.flow.customerShipment.shippedAt||'', done:!!o.flow.customerShipment.shippedAt},
+        {label:'確認收貨', date:o.flow.customerReceipt.confirmedAt||'', done:!!o.flow.customerReceipt.confirmedAt},
+      ];
+      const stepsHTML=steps.map((s,i)=>{const active=!s.done && steps.slice(0,i).every(x=>x.done);return `${i?`<div class="coc-connector${steps[i-1].done?' done':''}${active?' active':''}"></div>`:''}<div class="coc-step"><div class="coc-step-dot${s.done?' done':''}${active?' active':''}">${s.done?'✓':i+1}</div><div class="coc-step-label">${s.label}</div><div class="coc-step-date">${s.date||'—'}</div></div>`}).join('');
+      return `<div class="client-order-card"><div class="coc-header"><div><div class="coc-id">${o.id}</div><div class="coc-product">${safe(o.product)}</div></div><div style="text-align:right">${pill(o.status)}<div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:${isUrgent(o.delivery)?'var(--yellow)':'var(--text2)'}">希望交期 ${o.delivery}</div></div></div><div class="coc-timeline">${stepsHTML}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px"><div><div class="vtc-meta-label">數量</div><div class="vtc-meta-value">${Number(o.qty||0).toLocaleString()} pcs</div></div><div><div class="vtc-meta-label">最新共享更新</div><div class="vtc-meta-value" style="font-family:'Noto Sans TC',sans-serif">${safe((getVisibleUpdates().find(x=>x.orderId===o.id)||{}).clientMessage || '尚無更新')}</div></div><div><div class="vtc-meta-label">目前流程</div><div class="vtc-meta-value" style="font-family:'Noto Sans TC',sans-serif">${safe(workflowSummary(o))}</div></div></div>${o.flow.customerShipment.shippedAt && !o.flow.customerReceipt.confirmedAt ? `<div style="display:flex;justify-content:flex-end;margin-top:14px"><button class="btn btn-primary btn-sm" onclick="clientConfirmFinalReceipt('${o.id}')">確認收貨</button></div>`:''}</div>`;
+    }).join('') || '<div class="empty">目前沒有可查看的訂單</div>';
+  }
+  renderClientDelivery = function(){
+    ensureAllWorkflow();
+    const tbody=document.getElementById('client-delivery-tbody'); if(!tbody) return;
+    const rows=getVisibleOrders();
+    tbody.innerHTML = rows.map(o=>`<tr><td>${o.id}</td><td>${safe(o.product)}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${Number(o.qty||0).toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace">${o.delivery||'—'}</td><td style="font-family:'JetBrains Mono',monospace">${o.flow?.customerShipment?.shippedAt || '—'}</td><td>${o.flow?.customerReceipt?.confirmedAt ? `<span style="color:var(--green)">✓ ${o.flow.customerReceipt.confirmedAt}</span><div style="font-size:.68rem;color:var(--text3)">${safe(o.flow.customerReceipt.confirmedBy)}</div>` : (o.flow?.customerShipment?.shippedAt ? `<button class="btn btn-outline btn-sm" onclick="clientConfirmFinalReceipt('${o.id}')">確認收貨</button>` : '<span style="color:var(--text3)">待出貨</span>')}</td><td>${pill(o.status)}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">目前沒有資料</td></tr>';
+  }
+  renderVendorTasks = function(){
+    ensureAllWorkflow();
+    const u=getCurrentUser();
+    const orders=getVisibleOrders();
+    const shipments=orders.flatMap(o=>{ensureOrderWorkflow(o); return o.flow.vendorShipments.filter(x=>x.vendorId===u.vendorId).map(x=>({order:o, ship:x}));});
+    document.querySelector('#page-vendor-tasks .page-subtitle').textContent='可逐筆回報完成出貨，系統會自動記錄時間與操作人';
+    document.getElementById('v-active').textContent = shipments.filter(x=>!x.ship.shippedAt).length;
+    document.getElementById('v-due').textContent = shipments.filter(x=>!x.ship.shippedAt && isUrgent(x.order.delivery)).length;
+    document.getElementById('v-capacity').textContent = shipments.reduce((s,x)=>s+(x.ship.qty||0),0).toLocaleString();
+    const list=document.getElementById('vendor-tasks-list'); if(!list) return;
+    list.innerHTML = shipments.map(({order,ship})=>`<div class="vendor-task-card"><div class="vtc-header"><div><div class="vtc-id">${order.id}</div><div class="vtc-product">${safe(order.product)} / ${safe(ship.phase)}</div></div><div style="text-align:right">${pill(ship.shippedAt?'已完成出貨':'待完成出貨')}<div class="vtc-deadline" style="margin-top:6px;color:${isUrgent(order.delivery)?'var(--yellow)':'var(--text2)'}">交期 ${order.delivery}</div></div></div><div class="vtc-meta"><div class="vtc-meta-item"><div class="vtc-meta-label">分派數量</div><div class="vtc-meta-value">${Number(ship.qty||0).toLocaleString()} pcs</div></div><div class="vtc-meta-item"><div class="vtc-meta-label">完成時間</div><div class="vtc-meta-value">${ship.shippedAt||'—'}</div></div><div class="vtc-meta-item"><div class="vtc-meta-label">操作人</div><div class="vtc-meta-value">${safe(ship.shippedBy||'—')}</div></div><div class="vtc-meta-item"><div class="vtc-meta-label">最新共享更新</div><div class="vtc-meta-value" style="font-family:'Noto Sans TC',sans-serif">${safe((getVisibleUpdates().find(x=>x.orderId===order.id)||{}).vendorMessage || '尚無更新')}</div></div></div><div style="display:flex;gap:8px;justify-content:flex-end">${ship.shippedAt ? `<span class="soft-tag">已於 ${ship.shippedAt}</span>` : `<button class="btn btn-primary btn-sm" onclick="vendorCompleteShipment('${order.id}','${ship.assignmentId}')">完成出貨</button>`}<button class="btn btn-outline btn-sm" onclick="prefillUpdateOrder('${order.id}')">📝 回報更新</button></div></div>`).join('') || '<div class="empty">目前沒有分配給你的任務</div>';
+  }
+  renderDashboard = function(){
+    ensureAllWorkflow();
+    if (ORIG.renderDashboard) ORIG.renderDashboard();
+    const active=DB.orders.filter(o=>o.status!=='已結案').length;
+    const done=DB.orders.filter(o=>o.status==='已結案').length;
+    const pendingForecast=(DB.forecasts||[]).filter(f=>(f.status||'submitted')==='submitted').length;
+    if(document.getElementById('s-active')) document.getElementById('s-active').textContent=active;
+    if(document.getElementById('s-done')) document.getElementById('s-done').textContent=done;
+    const subtitle=document.getElementById('dash-date');
+    if(subtitle) subtitle.textContent = `Forecast 待審核 ${pendingForecast} 筆｜最後更新 ${nowText()}`;
+  }
+
+  saveOrder = async function(){
+    const clientName = document.getElementById('f-client').value.trim();
+    let client = CLIENTS.find(c => c.name === clientName);
+    if (!client) { client = { id:'C' + String(CLIENTS.length+1).padStart(3,'0'), name:clientName }; CLIENTS.push(client); }
+    const existing = DB.orders.find(x=>x.id===document.getElementById('f-order-id').value);
+    const o = {
+      ...(existing||{}),
+      id: document.getElementById('f-order-id').value || 'A-' + Date.now(),
+      clientId: client.id,
+      client: client.name,
+      product: document.getElementById('f-product').value,
+      qty: parseInt(document.getElementById('f-qty').value) || 0,
+      vendor: document.getElementById('f-vendor').value,
+      stock: parseInt(document.getElementById('f-stock').value) || 0,
+      planQty: parseInt(document.getElementById('f-plan-qty').value) || 0,
+      delivery: document.getElementById('f-delivery').value,
+      shipDate: existing?.shipDate || '',
+      received: existing?.received || '',
+      clientConfirm: existing?.clientConfirm || '',
+      status: existing?.status || '待發單',
+      notes: document.getElementById('f-notes').value,
+      createdAt: existing?.createdAt || nowText(),
+      createdBy: existing?.createdBy || actorInfo().name,
+      sourceForecastId: existing?.sourceForecastId || ''
+    };
+    if (!o.client || !o.product) { alert('請填寫客戶名稱與產品'); return; }
+    const idx=DB.orders.findIndex(x=>x.id===o.id); if(idx>=0) DB.orders[idx]=o; else DB.orders.unshift(o);
+    ensureOrderWorkflow(o); addAudit(o, idx>=0 ? '編輯訂單' : '建立訂單', `${o.product} / ${o.qty} pcs`);
+    if (o.vendor) {
+      const existingA=(DB.vendorAssignments||[]).find(x=>x.orderId===o.id && x.vendorId===o.vendor);
+      if(!existingA){ DB.vendorAssignments=DB.vendorAssignments||[]; const asg={id:'VA-'+Date.now(),orderId:o.id,vendorId:o.vendor,phase:'生產',qty:o.qty,isPrimary:true}; DB.vendorAssignments.push(asg); await persistAssignment(asg); }
+    }
+    updateOrderStatusByFlow(o); await persistOrder(o);
+    if (window.APP_MODE?.firebaseLive && window.firestoreDb && o.clientId) await window.firestoreDb.collection('clients').doc(o.clientId).set({id:o.clientId,name:o.client},{merge:true});
+    closeModal('modal-order'); renderOrders(); renderDashboard(); populateOrderSelect(); renderDelivery();
+  }
+
+  loadFirestoreData = async function(user){
+    if (ORIG.loadFirestoreData) await ORIG.loadFirestoreData(user);
+    if (!window.firestoreDb) return;
+    try {
+      if (user.role === 'admin') DB.forecasts = await fetchCollection('forecasts').catch(()=>[]);
+      if (user.role === 'client') DB.forecasts = await queryCollection('forecasts','clientId','==',user.clientId).catch(()=>[]);
+      if (user.role === 'vendor') DB.forecasts = [];
+    } catch(e){}
+    ensureAllWorkflow();
+  }
+
+  function injectWorkflowPages(){
+    const main=document.querySelector('main.main'); if(!main || document.getElementById('page-forecast-admin')) return;
+    const adminSidebar=document.getElementById('sidebar-admin');
+    const clientSidebar=document.getElementById('sidebar-client');
+    if(adminSidebar && !adminSidebar.innerHTML.includes('Forecast 審核')){
+      const target=[...adminSidebar.querySelectorAll('.sidebar-item')].find(x=>x.textContent.includes('帳號審核'));
+      const div=document.createElement('div'); div.className='sidebar-item'; div.innerHTML='<span class="icon">🧾</span> Forecast 審核'; div.setAttribute('onclick',"showPage('forecast-admin', this)");
+      target ? target.before(div) : adminSidebar.querySelector('.sidebar-section').appendChild(div);
+    }
+    if(clientSidebar && !clientSidebar.innerHTML.includes('Forecast 規劃')){
+      const sec=clientSidebar.querySelector('.sidebar-section');
+      const div=document.createElement('div'); div.className='sidebar-item'; div.innerHTML='<span class="icon">🧾</span> Forecast 規劃'; div.setAttribute('onclick',"showPage('client-forecast', this)");
+      sec.prepend(div);
+    }
+    const adminPage=document.createElement('div'); adminPage.id='page-forecast-admin'; adminPage.style.display='none'; adminPage.innerHTML=`<div class="page-header"><div><div class="page-title">Forecast 審核</div><div class="page-subtitle">客戶先填 Forecast，管理者確認後再轉正式訂單</div></div></div><div class="workflow-grid"><div class="workflow-mini"><div class="label">待審核 Forecast</div><div class="value" id="forecast-pending-count">0</div></div><div class="workflow-mini"><div class="label">已轉正式單</div><div class="value" id="forecast-approved-count">0</div></div></div><div class="table-wrap"><table><thead><tr><th>Forecast</th><th>客戶</th><th>品項</th><th>數量</th><th>希望交期</th><th>狀態</th><th>送出時間</th><th>送出人</th><th>操作</th></tr></thead><tbody id="forecast-admin-tbody"></tbody></table></div>`;
+    const clientPage=document.createElement('div'); clientPage.id='page-client-forecast'; clientPage.style.display='none'; clientPage.innerHTML=`<div class="page-header"><div><div class="page-title">Forecast 規劃</div><div class="page-subtitle">先填 Forecast，等待管理者審核後轉正式訂單</div></div></div><div class="role-banner client-banner">📦 <strong>Forecast</strong> — 請先填品項、數量、希望交期。管理者審核後才會建立正式訂單。</div><div class="approval-card" style="margin-bottom:20px"><div class="form-grid"><div class="form-group"><label>品項</label><input id="fc-product" placeholder="產品 / 規格"></div><div class="form-group"><label>數量</label><input id="fc-qty" type="number" placeholder="0"></div><div class="form-group"><label>希望交期</label><input id="fc-date" type="date"></div><div class="form-group full"><label>補充說明</label><textarea id="fc-notes" placeholder="例如出貨節奏、分批需求、包裝需求"></textarea></div></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button class="btn btn-primary" onclick="submitForecast()">送出 Forecast</button></div></div><div class="table-wrap"><table><thead><tr><th>Forecast</th><th>品項</th><th>數量</th><th>希望交期</th><th>狀態</th><th>送出時間</th><th>備註</th></tr></thead><tbody id="forecast-client-tbody"></tbody></table></div>`;
+    main.appendChild(adminPage); main.appendChild(clientPage);
+    const modalAssign=document.createElement('div'); modalAssign.className='modal-overlay'; modalAssign.id='modal-assign-vendor'; modalAssign.innerHTML=`<div class="modal"><div class="modal-header"><div class="modal-title">分派廠商 / 製程</div><button class="modal-close" onclick="closeModal('modal-assign-vendor')">✕</button></div><div class="modal-body"><div class="form-grid"><div class="form-group full"><label>訂單號</label><input id="av-order-id" readonly></div><div class="form-group"><label>廠商</label><select id="av-vendor"></select></div><div class="form-group"><label>製程 / 階段</label><input id="av-phase" placeholder="例如：CNC / 表面處理 / 組裝"></div><div class="form-group"><label>分派數量</label><input id="av-qty" type="number" placeholder="0"></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modal-assign-vendor')">取消</button><button class="btn btn-primary" onclick="saveVendorAssignment()">儲存分派</button></div></div>`;
+    const modalAudit=document.createElement('div'); modalAudit.className='modal-overlay'; modalAudit.id='modal-audit'; modalAudit.innerHTML=`<div class="modal"><div class="modal-header"><div class="modal-title" id="audit-title">流程紀錄</div><button class="modal-close" onclick="closeModal('modal-audit')">✕</button></div><div class="modal-body" id="audit-body"></div></div>`;
+    document.body.appendChild(modalAssign); document.body.appendChild(modalAudit);
+    document.querySelectorAll('#modal-assign-vendor,#modal-audit').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)e.target.classList.remove('open')}));
+  }
+
+  function refreshWorkflowViews(){ ensureAllWorkflow(); renderForecastAdmin(); renderForecastClient(); renderOrders(); renderDelivery(); renderClientOrders(); renderClientDelivery(); renderVendorTasks(); renderDashboard(); renderPlan(); updateAdminDataHint(); }
+
+  const origShowPage = showPage;
+  showPage = function(name, el){ origShowPage(name, el); if(name==='forecast-admin') renderForecastAdmin(); if(name==='client-forecast') renderForecastClient(); };
+
+
+  function ensureScheduleArray(order){
+    order.productionSchedule = Array.isArray(order.productionSchedule) ? order.productionSchedule : [];
+    return order.productionSchedule;
+  }
+  function scheduleTotals(order){
+    const rows = ensureScheduleArray(order);
+    const planned = rows.reduce((s,r)=>s + (parseInt(r.planQty)||0), 0);
+    const actual = rows.reduce((s,r)=>s + (parseInt(r.actualQty)||0), 0);
+    const remaining = Math.max(0, (parseInt(order.qty)||0) - actual);
+    const pct = Math.min(100, Math.round(actual / Math.max(parseInt(order.qty)||1, 1) * 100));
+    return {planned, actual, remaining, pct};
+  }
+  function todayIso(){
+    const d = new Date();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${d.getFullYear()}-${m}-${day}`;
+  }
+  function renderDashboard(){
+    const tbody = document.getElementById('dash-tbody');
+    if (!tbody) return;
+    const recent = (DB.orders||[]).filter(o => !['結案','已交貨'].includes(o.status)).slice(0, 6);
+    tbody.innerHTML = recent.map(o => {
+      const t = scheduleTotals(o);
+      const vendorNames = ((DB.vendorAssignments||[]).filter(a=>a.orderId===o.id).map(a=>getVendorName(a.vendorId)).filter(Boolean));
+      return `<tr><td><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${o.id}</span></td><td>${safe(o.client || getClientName(o.clientId) || '—')}</td><td style="max-width:140px;font-size:0.8rem">${safe(o.product)}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${(o.qty||0).toLocaleString()}</td><td>${safe(vendorNames.join(' / ') || getVendorName(o.vendor) || '未分派')}</td><td style="min-width:120px">${progress(t.actual || o.stock || 0, o.qty || 1)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:${isUrgent(o.delivery)?'var(--red)':'var(--text)'}">${safe(o.delivery || '—')}</td><td>${pill(o.status || '待發單')}</td></tr>`;
+    }).join('') || '<tr><td colspan="8" class="empty">目前尚無正式訂單。若你已在 Firebase 建了資料但這裡仍是空的，通常代表資料還沒建立在 orders / vendor_assignments / forecasts 這幾個 collection。</td></tr>';
+
+    const orders = DB.orders||[];
+    const activeOrders = orders.filter(o=>!['結案','已交貨'].includes(o.status)).length;
+    const doneOrders = orders.filter(o=>['結案','已交貨'].includes(o.status)).length;
+    const lackOrders = orders.filter(o=>o.status==='缺料').length;
+    const dueWeek = orders.filter(o=>isUrgent(o.delivery) && !['結案','已交貨'].includes(o.status)).length;
+    const vendorActive = new Set((DB.vendorAssignments||[]).map(a=>a.vendorId).filter(Boolean)).size || (DB.vendors||[]).length;
+
+    document.getElementById('s-active').textContent = activeOrders;
+    document.getElementById('s-done').textContent = doneOrders;
+    document.getElementById('s-lack').textContent = lackOrders;
+    document.getElementById('s-week').textContent = dueWeek;
+    document.getElementById('s-vendors').textContent = vendorActive;
+
+    const sub = document.getElementById('dash-date');
+    const fCount = (DB.forecasts||[]).filter(f=>(f.status||'submitted')==='submitted').length;
+    if(sub) sub.textContent = `Forecast 待審核 ${fCount} 筆｜正式訂單 ${orders.length} 筆｜更新 ${(DB.updates||[]).length} 筆｜最後更新 ${nowText()}`;
+  }
+
+  function openPlanEditor(orderId){
+    const o = (DB.orders||[]).find(x=>x.id===orderId);
+    if(!o) return;
+    ensureScheduleArray(o);
+    let modal = document.getElementById('modal-plan-editor');
+    if(!modal){
+      modal = document.createElement('div');
+      modal.className='modal-overlay';
+      modal.id='modal-plan-editor';
+      modal.innerHTML = `<div class="modal" style="max-width:860px"><div class="modal-header"><div class="modal-title">每日生產計畫 / 實際回報</div><button class="modal-close" onclick="closeModal('modal-plan-editor')">✕</button></div><div class="modal-body"><div id="plan-editor-head" style="margin-bottom:16px"></div><div class="plan-row-head"><div>日期</div><div>計畫量</div><div>實際量</div><div>備註</div><div></div></div><div id="plan-editor-rows"></div><div class="plan-help">建議做法：管理者先排每天計畫量；廠商或管理者再回填實際量。系統會自動算完成率與剩餘量。</div></div><div class="modal-footer"><button class="btn btn-outline" onclick="addPlanRow()">＋ 新增日期</button><button class="btn btn-outline" onclick="closeModal('modal-plan-editor')">關閉</button><button class="btn btn-primary" onclick="savePlanEditor()">儲存排程</button></div></div>`;
+      document.body.appendChild(modal);
+      modal.addEventListener('click', e=>{ if(e.target===modal) closeModal('modal-plan-editor'); });
+    }
+    modal.dataset.orderId = orderId;
+    document.getElementById('plan-editor-head').innerHTML = `<div class="approval-card"><div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap"><div><div class="page-title" style="font-size:1.05rem">${safe(o.id)} · ${safe(o.product)}</div><div class="page-subtitle">客戶：${safe(o.client || getClientName(o.clientId) || '—')}｜需求量：${(o.qty||0).toLocaleString()} pcs｜交期：${safe(o.delivery || '—')}</div></div><div class="plan-chip">目前完成率 ${scheduleTotals(o).pct}%</div></div></div>`;
+    const rowsWrap = document.getElementById('plan-editor-rows');
+    rowsWrap.innerHTML = '';
+    if(!o.productionSchedule.length){
+      const base = todayIso();
+      o.productionSchedule.push({date:base, planQty:o.qty||0, actualQty:0, note:''});
+    }
+    o.productionSchedule.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    o.productionSchedule.forEach((r,i)=>rowsWrap.insertAdjacentHTML('beforeend', planRowHtml(r,i)));
+    openModal('modal-plan-editor');
+  }
+  function planRowHtml(r,i){
+    return `<div class="plan-row" data-index="${i}"><div><input type="date" value="${safe(r.date||'')}"></div><div><input type="number" value="${parseInt(r.planQty)||0}" placeholder="0"></div><div><input type="number" value="${parseInt(r.actualQty)||0}" placeholder="0"></div><div><input type="text" value="${safe(r.note||'')}" placeholder="例如：機台保養 / 已補料"></div><div><button class="icon-btn" onclick="removePlanRow(${i})">🗑</button></div></div>`;
+  }
+  window.addPlanRow = function(){
+    const rowsWrap = document.getElementById('plan-editor-rows');
+    if(!rowsWrap) return;
+    const idx = rowsWrap.querySelectorAll('.plan-row').length;
+    rowsWrap.insertAdjacentHTML('beforeend', planRowHtml({date:todayIso(), planQty:0, actualQty:0, note:''}, idx));
+  }
+  window.removePlanRow = function(i){
+    const row = document.querySelector(`#plan-editor-rows .plan-row[data-index="${i}"]`);
+    if(row) row.remove();
+  }
+  window.savePlanEditor = async function(){
+    const modal = document.getElementById('modal-plan-editor');
+    const orderId = modal?.dataset.orderId;
+    const o = (DB.orders||[]).find(x=>x.id===orderId);
+    if(!o) return;
+    const rows = [...document.querySelectorAll('#plan-editor-rows .plan-row')].map(row=>{
+      const inputs = row.querySelectorAll('input');
+      return {date:inputs[0].value, planQty:parseInt(inputs[1].value)||0, actualQty:parseInt(inputs[2].value)||0, note:inputs[3].value||''};
+    }).filter(r=>r.date);
+    o.productionSchedule = rows.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    const t = scheduleTotals(o);
+    o.progress = t.pct;
+    if(t.actual>0 && !['結案','已交貨'].includes(o.status)) o.status = t.actual >= (o.qty||0) ? '待收貨' : '生產中';
+    addAudit(o, '更新每日生產計畫', `已排 ${rows.length} 天，計畫 ${t.planned} / 實際 ${t.actual}`);
+    await persistOrder(o);
+    closeModal('modal-plan-editor');
+    renderPlan(); renderDashboard(); renderVendorTasks(); renderOrders();
+  }
+
+  function renderPlan(){
+    const tbody = document.getElementById('plan-tbody');
+    if (!tbody) return;
+    const page = document.getElementById('page-plan');
+    if(page && !document.getElementById('plan-summary-wrap')){
+      const summary = document.createElement('div');
+      summary.id='plan-summary-wrap';
+      summary.innerHTML = `<div class="data-tip">這一頁現在改成「每日生產計畫」模式：管理者可先排每天要做多少，後續再回填實際量，系統自動算完成率與剩餘量。這樣就更接近你要的月報 / 日報 / 進度追蹤。</div><div class="plan-summary-grid"><div class="plan-summary-card"><div class="label">正式訂單數</div><div class="value" id="plan-sum-orders">0</div><div class="sub">目前需要管理的正式單</div></div><div class="plan-summary-card"><div class="label">總需求量</div><div class="value" id="plan-sum-demand">0</div><div class="sub">所有正式訂單需求總量</div></div><div class="plan-summary-card"><div class="label">已排程量</div><div class="value" id="plan-sum-planned">0</div><div class="sub">目前每日排程已分配總量</div></div><div class="plan-summary-card"><div class="label">已回報實際量</div><div class="value" id="plan-sum-actual">0</div><div class="sub">依每日實際量自動累計</div></div></div>`;
+      page.insertBefore(summary, page.querySelector('.table-wrap'));
+    }
+    const rows = (DB.orders||[]).slice().sort((a,b)=>String(a.delivery||'').localeCompare(String(b.delivery||'')));
+    let demand=0, planned=0, actual=0;
+    tbody.innerHTML = rows.map(o=>{
+      const t = scheduleTotals(o);
+      demand += parseInt(o.qty)||0; planned += t.planned; actual += t.actual;
+      const nextDate = (ensureScheduleArray(o).find(x=>(parseInt(x.planQty)||0)>0)||{}).date || '—';
+      const asg = (DB.vendorAssignments||[]).filter(a=>a.orderId===o.id).map(a=>`${getVendorName(a.vendorId)||a.vendorId} / ${a.phase||'生產'}`).join('<br>') || '未分派';
+      return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${safe(o.id)}</td><td><strong>${safe(o.product)}</strong><div style="font-size:.72rem;color:var(--text3)">客戶：${safe(o.client || getClientName(o.clientId) || '—')}</div></td><td>${asg}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${(o.qty||0).toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${t.planned.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right;color:var(--green)">${t.actual.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right;color:${t.remaining>0?'var(--red)':'var(--green)'}">${t.remaining.toLocaleString()}</td><td>${progress(t.actual, Math.max(o.qty||1,1))}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${safe(nextDate)}</td><td><div class="actions"><button class="btn btn-outline btn-sm" onclick="openPlanEditor('${safe(o.id)}')">每日排程</button><button class="btn btn-outline btn-sm" onclick="openAuditModal('${safe(o.id)}')">🕓 紀錄</button></div></td></tr>`;
+    }).join('') || '<tr><td colspan="10" class="empty">目前沒有正式訂單，因此看起來會像 admin 沒看到全部；這通常不是權限問題，而是 Firestore 的 orders 尚未建立資料。</td></tr>';
+    const set = (id,val)=>{ const el=document.getElementById(id); if(el) el.textContent = Number(val||0).toLocaleString(); };
+    set('plan-sum-orders', rows.length); set('plan-sum-demand', demand); set('plan-sum-planned', planned); set('plan-sum-actual', actual);
+  }
+
+  function renderAdminDataHint(){
+    const page = document.getElementById('page-dashboard');
+    if(!page || document.getElementById('admin-data-hint')) return;
+    const box = document.createElement('div');
+    box.id='admin-data-hint';
+    box.className='data-tip';
+    box.style.marginBottom='20px';
+    page.insertBefore(box, page.querySelector('.stats-grid'));
+    updateAdminDataHint();
+  }
+  function updateAdminDataHint(){
+    const box = document.getElementById('admin-data-hint');
+    if(!box || getCurrentUser().role !== 'admin') return;
+    const counts = {
+      forecasts:(DB.forecasts||[]).length,
+      orders:(DB.orders||[]).length,
+      assignments:(DB.vendorAssignments||[]).length,
+      updates:(DB.updates||[]).length,
+      vendors:(DB.vendors||[]).length
+    };
+    box.innerHTML = `管理者目前看到的是 Firebase 內已成功載入的全部資料：Forecast <strong>${counts.forecasts}</strong>｜正式訂單 <strong>${counts.orders}</strong>｜廠商分派 <strong>${counts.assignments}</strong>｜更新 <strong>${counts.updates}</strong>｜廠商 <strong>${counts.vendors}</strong>。${Object.values(counts).every(v=>v===0) ? ' 如果你覺得 admin 沒看到全部，通常是因為資料還沒建在對應 collection，不是 admin 權限被限制。' : ''}`;
+  }
+
+
+  window.addEventListener('DOMContentLoaded', ()=>{
+    injectWorkflowPages();
+    ensureAllWorkflow();
+    renderAdminDataHint();
+    refreshWorkflowViews();
+    updateAdminDataHint();
+  });
+})();
 </script>
 
 </body>
