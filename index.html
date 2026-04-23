@@ -2377,7 +2377,7 @@ function initFirebaseIfNeeded(force=false){
     return false;
   }
   try {
-    if (!firebase.apps.length) {
+    if (!firebase.apps || !firebase.apps.length) {
       window.firebaseAppInstance = firebase.initializeApp(cfg);
     } else {
       window.firebaseAppInstance = firebase.app();
@@ -2386,8 +2386,16 @@ function initFirebaseIfNeeded(force=false){
     window.firestoreDb = firebase.firestore();
     return true;
   } catch (e) {
-    showAuthStatus('Firebase 初始化失敗：' + (e?.message || e), true);
-    return false;
+    // If app already initialized under a different name, try to reuse
+    try {
+      window.firebaseAppInstance = firebase.app();
+      window.firebaseAuth = firebase.auth();
+      window.firestoreDb = firebase.firestore();
+      return true;
+    } catch (e2) {
+      showAuthStatus('Firebase 初始化失敗：' + (e?.message || e), true);
+      return false;
+    }
   }
 }
 
@@ -2403,7 +2411,18 @@ async function loginWithFirebase(){
     showAuthStatus('登入中...');
     await window.firebaseAuth.signInWithEmailAndPassword(email, password);
   } catch (e) {
-    showAuthStatus('登入失敗：' + (e?.message || e), true);
+    const code = e?.code || '';
+    let msg = '登入失敗：' + (e?.message || e);
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      msg = '登入失敗：Email 或密碼錯誤，請再確認。';
+    } else if (code === 'auth/too-many-requests') {
+      msg = '登入嘗試次數過多，帳號暫時鎖定，請稍後再試或重設密碼。';
+    } else if (code === 'auth/invalid-email') {
+      msg = '登入失敗：Email 格式不正確。';
+    } else if (code === 'auth/network-request-failed') {
+      msg = '網路連線失敗，請確認網路後再試。';
+    }
+    showAuthStatus(msg, true);
   }
 }
 
@@ -2616,6 +2635,9 @@ async function loadFirestoreData(user){
   }
 
   if (user.role === 'client') {
+    if (!user.clientId) {
+      throw new Error('此帳號的 users 文件缺少 clientId 欄位，請管理者在 Firestore users/' + user.id + ' 補上 clientId。');
+    }
     DB.orders = await queryCollection('orders', 'clientId', '==', user.clientId);
     DB.updates = await queryCollectionArrayContains('updates', 'visibleTo', `client:${user.clientId}`).catch(()=>[]);
     DB.vendors = [];
@@ -2628,9 +2650,12 @@ async function loadFirestoreData(user){
   }
 
   if (user.role === 'vendor') {
+    if (!user.vendorId) {
+      throw new Error('此帳號的 users 文件缺少 vendorId 欄位，請管理者在 Firestore users/' + user.id + ' 補上 vendorId。');
+    }
     DB.vendorAssignments = await queryCollection('vendor_assignments', 'vendorId', '==', user.vendorId).catch(()=>[]);
     const orderIds = DB.vendorAssignments.map(x => x.orderId);
-    DB.orders = await fetchDocsByIds('orders', orderIds).catch(()=>[]);
+    DB.orders = orderIds.length ? await fetchDocsByIds('orders', orderIds).catch(()=>[]) : [];
     DB.updates = await queryCollectionArrayContains('updates', 'visibleTo', `vendor:${user.vendorId}`).catch(()=>[]);
     DB.plans = await queryCollection('plans', 'vendor', '==', user.vendorId).catch(()=>[]);
     DB.vendors = [];
@@ -2643,7 +2668,18 @@ async function loadFirestoreData(user){
 async function loadFirebaseUserProfile(authUser){
   const profileDoc = await window.firestoreDb.collection('users').doc(authUser.uid).get();
   if (!profileDoc.exists) {
-    throw new Error('users/' + authUser.uid + ' 不存在，請先建立使用者角色資料。');
+    // Auto-create a pending profile so the user sees a clear message instead of a crash
+    const autoProfile = {
+      name: authUser.displayName || authUser.email || '新帳號',
+      email: authUser.email || '',
+      role: 'pending',
+      status: 'pending',
+      requestedAt: new Date().toISOString().slice(0,16).replace('T',' ')
+    };
+    try {
+      await window.firestoreDb.collection('users').doc(authUser.uid).set(autoProfile, { merge:true });
+    } catch(_) {}
+    return { id: authUser.uid, ...autoProfile };
   }
   const data = profileDoc.data() || {};
   return {
@@ -2665,9 +2701,25 @@ function applyAuthenticatedUser(user){
   hideAuthGate();
   syncRoleUI();
   renderAccountSwitcher();
-  if (user.role === 'admin') showPage('dashboard', document.querySelector('#sidebar-admin .sidebar-item'));
-  if (user.role === 'client') showPage('client-orders', document.querySelector('#sidebar-client .sidebar-item'));
-  if (user.role === 'vendor') showPage('vendor-tasks', document.querySelector('#sidebar-vendor .sidebar-item'));
+  if (user.role === 'admin') {
+    const el = document.querySelector('#sidebar-admin .sidebar-item');
+    showPage('dashboard', el);
+  }
+  if (user.role === 'client') {
+    const el = document.querySelector('#sidebar-client .sidebar-item');
+    showPage('client-orders', el);
+  }
+  if (user.role === 'vendor') {
+    const el = document.querySelector('#sidebar-vendor .sidebar-item');
+    showPage('vendor-tasks', el);
+  }
+}
+
+function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`「${label}」超時（${ms/1000}秒），請確認 Firestore 安全規則是否允許讀取，或網路是否正常。`)), ms);
+    promise.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
+  });
 }
 
 async function handleFirebaseAuthState(authUser){
@@ -2678,8 +2730,9 @@ async function handleFirebaseAuthState(authUser){
     return;
   }
   try {
-    showAuthStatus('讀取帳號權限中...');
-    const user = await loadFirebaseUserProfile(authUser);
+    showAuthStatus('步驟 1/3：讀取帳號權限中...');
+    const user = await withTimeout(loadFirebaseUserProfile(authUser), 10000, '讀取 users 文件');
+
     if (user.role === 'pending') {
       showAuthGate();
       showAuthStatus('你的帳號申請已送出，尚待管理者審核開通。');
@@ -2692,14 +2745,21 @@ async function handleFirebaseAuthState(authUser){
       await window.firebaseAuth.signOut();
       return;
     }
-    await loadFirestoreData(user);
+
+    showAuthStatus(`步驟 2/3：載入資料中（角色：${user.role}）...`);
+    await withTimeout(loadFirestoreData(user), 20000, '載入 Firestore 資料');
+
+    showAuthStatus('步驟 3/3：初始化介面...');
     populateVendorSelects();
     populateOrderSelect(user.role !== 'admin');
     applyAuthenticatedUser(user);
     if (user.role === 'admin') renderApprovals();
     showAuthStatus('登入成功。');
   } catch (e) {
-    showAuthStatus('載入帳號資料失敗：' + (e?.message || e), true);
+    const errMsg = e?.message || String(e);
+    showAuthStatus('❌ ' + errMsg, true);
+    try { await window.firebaseAuth.signOut(); } catch(_){}
+    showAuthGate();
   }
 }
 
