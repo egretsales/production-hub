@@ -8395,6 +8395,175 @@ window.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
+
+<style>
+.migration-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0 18px}
+.migration-note{font-size:.75rem;color:var(--text3);line-height:1.7}
+</style>
+<script>
+(function(){
+  function A(v){ return Array.isArray(v) ? v : []; }
+  function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+  function actorInfo2(){ try { return typeof getCurrentUser === 'function' ? getCurrentUser() : null; } catch(e){ return null; } }
+  function inferUserType(user){
+    if (!user) return '';
+    if (user.role === 'client' || user.role === 'vendor') return user.role;
+    if (user.requestType === 'client' || user.requestType === 'vendor') return user.requestType;
+    return '';
+  }
+  function ensureMigrationButtons(){
+    const customerPage = document.getElementById('page-customers-admin');
+    if (customerPage && !document.getElementById('legacy-migrate-tools-customers')) {
+      const header = customerPage.querySelector('.page-header');
+      if (header) {
+        const box = document.createElement('div');
+        box.id = 'legacy-migrate-tools-customers';
+        box.className = 'migration-tools';
+        box.innerHTML = '<button class="btn btn-outline" type="button" onclick="runLegacyPrincipalMigration()">修復舊註冊主檔</button><div class="migration-note">把 users 內既有 client/vendor 註冊資料補建到 clients / vendors，並回填 clientId / vendorId。</div>';
+        header.appendChild(box);
+      }
+    }
+    const alliancePage = document.getElementById('page-alliances');
+    if (alliancePage && !document.getElementById('legacy-migrate-tools-vendors')) {
+      const header = alliancePage.querySelector('.page-header');
+      if (header) {
+        const box = document.createElement('div');
+        box.id = 'legacy-migrate-tools-vendors';
+        box.className = 'migration-tools';
+        box.innerHTML = '<button class="btn btn-outline" type="button" onclick="runLegacyPrincipalMigration()">修復舊註冊主檔</button><div class="migration-note">若以前註冊資料只在 users，按這裡會補進廠商聯盟 / 客戶區域。</div>';
+        header.appendChild(box);
+      }
+    }
+  }
+
+  async function refreshAfterMigration(){
+    const user = actorInfo2();
+    if (typeof loadFirestoreData === 'function' && user) {
+      await loadFirestoreData(user).catch(()=>{});
+    }
+    if (typeof renderCustomersAdmin === 'function') renderCustomersAdmin();
+    if (typeof renderAlliances === 'function') renderAlliances();
+    if (typeof renderApprovals === 'function') renderApprovals();
+    if (typeof populateVendorSelects === 'function') populateVendorSelects();
+    if (window.PM && typeof window.PM.populate === 'function') window.PM.populate();
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof refreshAll === 'function') refreshAll();
+  }
+
+  window.runLegacyPrincipalMigration = async function(){
+    const actor = actorInfo2();
+    if (!actor || actor.role !== 'admin') return alert('只有管理者可執行這個修復。');
+    if (!window.firestoreDb) return alert('目前不是 Firebase live，無法修復 Firestore 資料。');
+    const ok = confirm('這會掃描 users 內既有註冊資料，補建到 clients / vendors，並回填 clientId / vendorId。\n\n舊的 pending 註冊若可判斷為客戶/廠商，也會直接補成可用主檔。\n\n要繼續嗎？');
+    if (!ok) return;
+
+    try {
+      const now = new Date().toISOString().slice(0,16).replace('T',' ');
+      const by = actor.email || actor.name || 'admin';
+      const users = typeof fetchCollection === 'function' ? await fetchCollection('users') : [];
+      const liveClients = typeof fetchCollection === 'function' ? await fetchCollection('clients').catch(()=>[]) : [];
+      const liveVendors = typeof fetchCollection === 'function' ? await fetchCollection('vendors').catch(()=>[]) : [];
+
+      while (Array.isArray(window.CLIENTS) && window.CLIENTS.length) window.CLIENTS.pop();
+      liveClients.forEach(c => window.CLIENTS.push(c));
+      DB.vendors = liveVendors.slice();
+
+      let createdClients = 0;
+      let createdVendors = 0;
+      let patchedUsers = 0;
+      let skipped = 0;
+
+      for (const user of A(users)) {
+        const type = inferUserType(user);
+        if (!type) { skipped += 1; continue; }
+
+        if (type === 'client') {
+          let entityId = user.clientId || '';
+          let row = entityId ? A(window.CLIENTS).find(c => c.id === entityId) : null;
+          if (!row) {
+            if (!entityId) entityId = typeof nextEntityId === 'function' ? nextEntityId('C', A(window.CLIENTS)) : ('C' + String(A(window.CLIENTS).length + 1).padStart(3,'0'));
+            row = {
+              id: entityId,
+              name: user.companyName || user.company || user.displayName || user.name || ('客戶 ' + entityId),
+              contact: user.name || '',
+              email: user.email || '',
+              phone: user.phone || '',
+              status: 'active',
+              notes: user.notes || '',
+              source: 'legacy-user-migration',
+              createdAt: user.createdAt || now,
+              updatedAt: now
+            };
+            await window.firestoreDb.collection('clients').doc(entityId).set(row, { merge:true });
+            if (!A(window.CLIENTS).find(c => c.id === entityId)) window.CLIENTS.push(row);
+            createdClients += 1;
+          }
+          const patch = { clientId: entityId, migratedAt: now, migratedBy: by };
+          if (user.role !== 'client') patch.role = 'client';
+          if (user.status !== 'active') patch.status = 'active';
+          if (!user.approvedAt) patch.approvedAt = now;
+          await window.firestoreDb.collection('users').doc(user.id).set(patch, { merge:true });
+          patchedUsers += 1;
+          continue;
+        }
+
+        if (type === 'vendor') {
+          let entityId = user.vendorId || '';
+          let row = entityId ? A(DB.vendors).find(v => v.id === entityId) : null;
+          if (!row) {
+            if (!entityId) entityId = typeof nextEntityId === 'function' ? nextEntityId('V', A(DB.vendors)) : ('V' + String(A(DB.vendors).length + 1).padStart(3,'0'));
+            row = {
+              id: entityId,
+              name: user.companyName || user.company || user.displayName || user.name || ('廠商 ' + entityId),
+              type: user.vendorType || '待補資料',
+              contact: user.name || '',
+              phone: user.phone || '',
+              email: user.email || '',
+              capacity: Number(user.capacity || 0),
+              status: '合作中',
+              notes: user.notes || '',
+              source: 'legacy-user-migration',
+              createdAt: user.createdAt || now,
+              updatedAt: now
+            };
+            await window.firestoreDb.collection('vendors').doc(entityId).set(row, { merge:true });
+            if (!A(DB.vendors).find(v => v.id === entityId)) DB.vendors.push(row);
+            createdVendors += 1;
+          }
+          const patch = { vendorId: entityId, migratedAt: now, migratedBy: by };
+          if (user.role !== 'vendor') patch.role = 'vendor';
+          if (user.status !== 'active') patch.status = 'active';
+          if (!user.approvedAt) patch.approvedAt = now;
+          await window.firestoreDb.collection('users').doc(user.id).set(patch, { merge:true });
+          patchedUsers += 1;
+        }
+      }
+
+      await refreshAfterMigration();
+      alert('✅ 修復完成\n\n補建客戶主檔：' + createdClients + '\n補建廠商主檔：' + createdVendors + '\n回填 users：' + patchedUsers + '\n略過無法判斷類型：' + skipped + '\n\n現在客戶區域 / 廠商聯盟 / 權限連動應該就會接起來。');
+    } catch (e) {
+      console.error(e);
+      alert('修復失敗：' + (e?.message || e));
+    }
+  };
+
+  const origLoad = window.loadFirestoreData;
+  window.loadFirestoreData = async function(user){
+    if (origLoad) await origLoad(user);
+    ensureMigrationButtons();
+  };
+
+  const origShowPage = window.showPage;
+  window.showPage = function(page, el){
+    const r = origShowPage ? origShowPage(page, el) : undefined;
+    setTimeout(ensureMigrationButtons, 10);
+    return r;
+  };
+
+  window.addEventListener('DOMContentLoaded', function(){ setTimeout(ensureMigrationButtons, 300); setTimeout(ensureMigrationButtons, 1200); });
+})();
+</script>
+
 </body>
 </html>
 
