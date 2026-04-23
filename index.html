@@ -8165,5 +8165,236 @@ window.addEventListener('DOMContentLoaded', () => {
 })();
 </script>
 
+
+<style>
+.product-debug-note{
+  margin-top:8px;padding:10px 12px;border-radius:10px;background:rgba(142,163,176,0.10);
+  border:1px dashed rgba(142,163,176,0.22);font-size:.74rem;color:var(--text2);line-height:1.7;
+}
+.product-debug-note.warn{
+  background:rgba(184,134,124,0.10);border-color:rgba(184,134,124,0.24);color:var(--red);
+}
+</style>
+<script>
+(function(){
+  function safeArr(v){ return Array.isArray(v) ? v.filter(x => x !== undefined && x !== null && String(x).trim() !== '') : []; }
+  function csvToArr(v){
+    if (Array.isArray(v)) return safeArr(v).map(x => String(x).trim()).filter(Boolean);
+    if (v === undefined || v === null) return [];
+    return String(v).split(',').map(x => x.trim()).filter(Boolean);
+  }
+  function normalizeAccess(v){
+    if (Array.isArray(v)) return safeArr(v).map(x => String(x).trim()).filter(Boolean);
+    if (v === undefined || v === null) return [];
+    if (typeof v === 'string' && !v.trim()) return [];
+    return csvToArr(v);
+  }
+  function getUser(){
+    try { return typeof getCurrentUser === 'function' ? getCurrentUser() : (window.ACTIVE_USER || null); }
+    catch(e){ return window.ACTIVE_USER || null; }
+  }
+  function ensureProductShape(){
+    if (!window.DB) return;
+    DB.products = Array.isArray(DB.products) ? DB.products : [];
+    DB.products = DB.products.map(p => {
+      const row = Object.assign({}, p || {});
+      row.clientIds = normalizeAccess(row.clientIds ?? row.openClients ?? row.visibleClients ?? row.clientAccess);
+      row.vendorIds = normalizeAccess(row.vendorIds ?? row.openVendors ?? row.visibleVendors ?? row.vendorAccess);
+      row.status = row.status || 'active';
+      return row;
+    });
+  }
+  function canSeeProduct(product, user){
+    if (!product || !user) return false;
+    if ((product.status || 'active') === 'disabled') return false;
+    if (user.role === 'admin') return true;
+    const clientIds = normalizeAccess(product.clientIds);
+    const vendorIds = normalizeAccess(product.vendorIds);
+    if (user.role === 'client') {
+      if (clientIds.length === 0) return true;
+      if (!user.clientId) return false;
+      return clientIds.includes(String(user.clientId).trim());
+    }
+    if (user.role === 'vendor') {
+      if (vendorIds.length === 0) return true;
+      if (!user.vendorId) return false;
+      return vendorIds.includes(String(user.vendorId).trim());
+    }
+    return false;
+  }
+  function visibleRows(user){
+    ensureProductShape();
+    const rows = Array.isArray(DB?.products) ? DB.products : [];
+    return rows.filter(p => canSeeProduct(p, user));
+  }
+  function productTextSafe(p){
+    try {
+      if (window.ProductMaster?.getText) return window.ProductMaster.getText(p);
+      if (typeof productText === 'function') return productText(p);
+    } catch(e){}
+    const no = p.internalPartNo || p.customerPartNo || p.id || '';
+    const spec = p.spec ? '｜' + p.spec : '';
+    return `${p.name || '未命名'}${no ? '｜' + no : ''}${spec}`;
+  }
+  function ensureDebugNote(){
+    const sel = document.getElementById('fc-product');
+    if (!sel) return null;
+    let note = document.getElementById('product-visibility-debug');
+    if (!note) {
+      note = document.createElement('div');
+      note.id = 'product-visibility-debug';
+      note.className = 'product-debug-note';
+      sel.insertAdjacentElement('afterend', note);
+    }
+    return note;
+  }
+  function renderDebugNote(rows, user){
+    const note = ensureDebugNote();
+    if (!note) return;
+    if (!user || user.role !== 'client') {
+      note.style.display = 'none';
+      return;
+    }
+    note.style.display = 'block';
+    const cid = user.clientId || '未設定';
+    if (!rows.length) {
+      note.className = 'product-debug-note warn';
+      note.innerHTML = `目前此客戶可見產品 <strong>0</strong> 筆。現在登入帳號的 clientId：<strong>${cid}</strong>。<br>防呆邏輯已把 <code>clientIds=[]</code> 視為全部客戶可見；若仍是 0 筆，通常代表目前頁面還沒抓到最新 products，或這個帳號的 <code>clientId</code> 沒有正確寫入 users。`;
+    } else {
+      note.className = 'product-debug-note';
+      note.innerHTML = `目前此客戶可見產品 <strong>${rows.length}</strong> 筆。現在登入帳號的 clientId：<strong>${cid}</strong>。空陣列 <code>clientIds=[]</code> 已視為全部客戶可見。`;
+    }
+  }
+  async function migrateEmptyAccessArrays(){
+    ensureProductShape();
+    (DB.products || []).forEach(p => {
+      if (normalizeAccess(p.clientIds).length === 0) delete p.clientIds;
+      if (normalizeAccess(p.vendorIds).length === 0) delete p.vendorIds;
+    });
+    if (!(window.APP_MODE?.firebaseLive) || !window.firestoreDb) return;
+    const FV = window.firebase?.firestore?.FieldValue;
+    if (!FV?.delete) return;
+    try {
+      const snap = await window.firestoreDb.collection('products').get();
+      const jobs = [];
+      snap.forEach(doc => {
+        const d = doc.data() || {};
+        const patch = {};
+        if (Array.isArray(d.clientIds) && d.clientIds.length === 0) patch.clientIds = FV.delete();
+        if (Array.isArray(d.vendorIds) && d.vendorIds.length === 0) patch.vendorIds = FV.delete();
+        if (Object.keys(patch).length) jobs.push(window.firestoreDb.collection('products').doc(doc.id).set(patch, { merge:true }));
+      });
+      if (jobs.length) await Promise.all(jobs);
+    } catch (e) {
+      console.warn('產品權限空陣列 migration 失敗', e);
+    }
+  }
+  function patchPopulate(){
+    const PM = window.ProductMaster || window.PM;
+    if (!PM || PM.__defensivePopulateV1) return;
+    const oldPopulate = PM.populate?.bind(PM);
+    PM.populate = function(){
+      ensureProductShape();
+      const user = getUser();
+      const rows = visibleRows(user);
+      const map = [
+        {id:'pm-client-filter', label:'全部客戶', type:'client-filter'},
+        {id:'pm-vendor-filter', label:'全部廠商', type:'vendor-filter'},
+        {id:'fc-product', label:'-- 選擇產品 / 料號 --', type:'product'},
+        {id:'f-product', label:'-- 選擇產品 / 料號 --', type:'product'}
+      ];
+      map.forEach(cfg => {
+        const sel = document.getElementById(cfg.id);
+        if (!sel) return;
+        const current = sel.value;
+        if (cfg.type === 'client-filter') {
+          const clients = Array.isArray(DB?.clients) ? DB.clients : (Array.isArray(window.CLIENTS) ? window.CLIENTS : []);
+          sel.innerHTML = `<option value="">${cfg.label}</option>` + clients.map(c => `<option value="${c.id}">${c.name || c.company || c.id}</option>`).join('');
+        } else if (cfg.type === 'vendor-filter') {
+          const vendors = Array.isArray(DB?.vendors) ? DB.vendors : [];
+          sel.innerHTML = `<option value="">${cfg.label}</option>` + vendors.map(v => `<option value="${v.id}">${v.name || v.company || v.id}</option>`).join('');
+        } else {
+          sel.innerHTML = `<option value="">${cfg.label}</option>` + rows.map(p => `<option value="${p.id}">${productTextSafe(p)}</option>`).join('');
+        }
+        if ([...sel.options].some(o => o.value === current)) sel.value = current;
+      });
+      renderDebugNote(rows, user);
+      if (typeof oldPopulate === 'function') {
+        try { oldPopulate(); } catch(e){}
+      }
+      return rows;
+    };
+    PM.__defensivePopulateV1 = true;
+  }
+  function patchSave(){
+    const PM = window.ProductMaster || window.PM;
+    if (!PM || PM.__defensiveSaveV1) return;
+    const oldSave = PM.save?.bind(PM);
+    if (!oldSave) return;
+    PM.save = async function(){
+      const ci = document.getElementById('pm-clients');
+      const vi = document.getElementById('pm-vendors');
+      if (ci) ci.value = normalizeAccess(ci.value).join(',');
+      if (vi) vi.value = normalizeAccess(vi.value).join(',');
+      const result = await oldSave();
+      const product = result && result.id ? (DB.products || []).find(x => x.id === result.id) : null;
+      if (product) {
+        product.clientIds = normalizeAccess(product.clientIds);
+        product.vendorIds = normalizeAccess(product.vendorIds);
+        if (product.clientIds.length === 0) delete product.clientIds;
+        if (product.vendorIds.length === 0) delete product.vendorIds;
+        try {
+          if (window.APP_MODE?.firebaseLive && window.firestoreDb) {
+            const payload = JSON.parse(JSON.stringify(product));
+            if (!payload.clientIds || payload.clientIds.length === 0) delete payload.clientIds;
+            if (!payload.vendorIds || payload.vendorIds.length === 0) delete payload.vendorIds;
+            await window.firestoreDb.collection('products').doc(product.id).set(payload, { merge:true });
+            const FV = window.firebase?.firestore?.FieldValue;
+            const cleanup = {};
+            if ((!payload.clientIds || payload.clientIds.length === 0) && FV?.delete) cleanup.clientIds = FV.delete();
+            if ((!payload.vendorIds || payload.vendorIds.length === 0) && FV?.delete) cleanup.vendorIds = FV.delete();
+            if (Object.keys(cleanup).length) await window.firestoreDb.collection('products').doc(product.id).set(cleanup, { merge:true });
+          }
+        } catch(e){ console.warn('防呆版 product save cleanup 失敗', e); }
+      }
+      if (typeof PM.populate === 'function') PM.populate();
+      return result;
+    };
+    PM.__defensiveSaveV1 = true;
+  }
+  function hookForecastPage(){
+    const oldShowPage = window.showPage;
+    if (window.__defensiveShowPageV1 || typeof oldShowPage !== 'function') return;
+    window.showPage = function(page, el){
+      const r = oldShowPage.apply(this, arguments);
+      if (page === 'forecast' || page === 'client-orders' || page === 'client-delivery') {
+        setTimeout(() => {
+          const PM = window.ProductMaster || window.PM;
+          if (PM?.populate) PM.populate();
+        }, 30);
+      }
+      return r;
+    };
+    window.__defensiveShowPageV1 = true;
+  }
+  async function boot(){
+    ensureProductShape();
+    patchPopulate();
+    patchSave();
+    hookForecastPage();
+    await migrateEmptyAccessArrays();
+    const PM = window.ProductMaster || window.PM;
+    if (PM?.populate) PM.populate();
+  }
+  window.runProductAccessDefensiveFix = boot;
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(boot, 120);
+    setTimeout(boot, 600);
+    setTimeout(boot, 1400);
+  });
+})();
+</script>
+
 </body>
 </html>
+
