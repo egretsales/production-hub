@@ -1,0 +1,2849 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OEM·HUB — 代工訂單管理系統</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f1eb;
+  --bg2: #ece6df;
+  --surface: #fffdf9;
+  --surface2: #f7f2ec;
+  --surface3: #efe7df;
+  --border: rgba(112, 97, 84, 0.10);
+  --border2: rgba(112, 97, 84, 0.16);
+
+  --accent: #7f8b86;
+  --accent-glow: rgba(127, 139, 134, 0.14);
+  --accent2: #a79c8d;
+
+  --green: #8ea692;
+  --green-bg: rgba(142,166,146,0.12);
+  --red: #b8867c;
+  --red-bg: rgba(184,134,124,0.12);
+  --blue: #8ea3b0;
+  --blue-bg: rgba(142,163,176,0.12);
+  --yellow: #c3a97d;
+  --yellow-bg: rgba(195,169,125,0.12);
+  --purple: #a79ab3;
+  --purple-bg: rgba(167,154,179,0.12);
+
+  --text: #3f3a36;
+  --text2: #756d67;
+  --text3: #a59a92;
+
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 10px 28px rgba(95, 82, 72, 0.08);
+  --shadow-lg: 0 18px 48px rgba(95, 82, 72, 0.12);
+
+  --role-admin: #8f8578;
+  --role-client: #8ea3b0;
+  --role-vendor: #8ea692;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Sora', 'Noto Sans TC', sans-serif;
+  background: linear-gradient(180deg, #f7f2ec 0%, #f3eee8 100%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d8cec5; border-radius: 4px; }
+
+/* ── ROLE SWITCHER ── */
+.role-bar {
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  font-size: 0.75rem;
+}
+
+.role-bar-label { color: var(--text2); margin-right: 4px; letter-spacing: 0.5px; font-size: 0.7rem; text-transform: uppercase; }
+
+.role-btn {
+  padding: 4px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: 'Sora', 'Noto Sans TC', sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.3px;
+}
+
+.role-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+.role-btn.active-admin  { background: rgba(108,142,245,0.15); border-color: var(--role-admin); color: var(--role-admin); box-shadow: 0 6px 18px rgba(127, 139, 134, 0.12); }
+.role-btn.active-client { background: rgba(96,165,250,0.15); border-color: var(--role-client); color: var(--role-client); box-shadow: 0 6px 18px rgba(142, 163, 176, 0.12); }
+.role-btn.active-vendor { background: rgba(52,211,153,0.15); border-color: var(--role-vendor); color: var(--role-vendor); box-shadow: 0 6px 18px rgba(142, 166, 146, 0.12); }
+
+.role-indicator {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--text3);
+}
+
+.role-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--role-admin);
+  transition: background .2s;
+  box-shadow: 0 0 0 4px rgba(127, 139, 134, 0.10);
+}
+
+/* ── TOP NAV ── */
+header {
+  background: rgba(255, 252, 247, 0.92);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.logo {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 2px;
+}
+
+.logo span {
+  color: var(--accent);
+  font-weight: 400;
+}
+
+.nav-actions { display: flex; gap: 10px; align-items: center; }
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Sora', 'Noto Sans TC', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all .2s;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #8f8578, #7f8b86);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(127, 139, 134, 0.18);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 26px rgba(127, 139, 134, 0.20); }
+.btn-primary:active { transform: translateY(0); }
+.btn-outline { background: var(--surface2); color: var(--text2); border: 1px solid var(--border2); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+.btn-sm { padding: 5px 12px; font-size: 0.73rem; }
+
+/* ── LAYOUT ── */
+.app { display: flex; height: calc(100vh - 96px); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 230px;
+  background: var(--surface2);
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+  transition: all .2s;
+}
+
+.sidebar-section { margin-bottom: 8px; }
+
+.sidebar-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 4px 18px 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 0.84rem;
+  color: var(--text2);
+  border-left: 2px solid transparent;
+  transition: all .15s;
+  margin: 1px 8px 1px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.sidebar-item:hover { background: var(--surface2); color: var(--text); }
+.sidebar-item.active { background: #ece6df; color: var(--accent); border-left-color: var(--accent); }
+.sidebar-item .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+.badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  background: rgba(248,113,113,0.15);
+  color: var(--red);
+  border: 1px solid rgba(248,113,113,0.25);
+  margin-left: auto;
+}
+
+/* ── MAIN ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  background: var(--bg);
+}
+
+/* ── PAGE HEADER ── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.page-subtitle { color: var(--text2); font-size: 0.82rem; margin-top: 4px; }
+
+/* ── STAT CARDS ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, transform .2s;
+}
+
+.stat-card:hover { transform: translateY(-2px); }
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  opacity: 0.6;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  opacity: 0.06;
+}
+
+.stat-card.c-blue { border-color: rgba(142,163,176,0.18); }
+.stat-card.c-blue::before { background: linear-gradient(90deg, var(--blue), transparent); }
+.stat-card.c-blue::after { background: var(--blue); }
+
+.stat-card.c-green { border-color: rgba(142,166,146,0.18); }
+.stat-card.c-green::before { background: linear-gradient(90deg, var(--green), transparent); }
+.stat-card.c-green::after { background: var(--green); }
+
+.stat-card.c-red { border-color: rgba(248,113,113,0.2); }
+.stat-card.c-red::before { background: linear-gradient(90deg, var(--red), transparent); }
+.stat-card.c-red::after { background: var(--red); }
+
+.stat-card.c-yellow { border-color: rgba(251,191,36,0.2); }
+.stat-card.c-yellow::before { background: linear-gradient(90deg, var(--yellow), transparent); }
+.stat-card.c-yellow::after { background: var(--yellow); }
+
+.stat-card.c-purple { border-color: rgba(192,132,252,0.2); }
+.stat-card.c-purple::before { background: linear-gradient(90deg, var(--purple), transparent); }
+.stat-card.c-purple::after { background: var(--purple); }
+
+.stat-label { font-size: 0.7rem; color: var(--text2); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
+.stat-value { font-size: 2rem; font-family: 'JetBrains Mono', monospace; font-weight: 700; line-height: 1; color: var(--text); }
+.stat-sub { font-size: 0.7rem; color: var(--text3); margin-top: 8px; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 32px; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.section-title .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+}
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 600px;
+}
+
+thead tr { background: var(--surface2); }
+
+th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--text);
+}
+
+tr:last-child td { border-bottom: none; }
+tbody tr { background: var(--surface); transition: background .15s; }
+tbody tr:hover { background: var(--surface2); }
+
+/* ── STATUS PILLS ── */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill::before { content: '●'; font-size: 0.45rem; }
+
+.pill-green  { background: var(--green-bg);  color: var(--green);  border: 1px solid rgba(52,211,153,0.2); }
+.pill-red    { background: var(--red-bg);    color: var(--red);    border: 1px solid rgba(184,134,124,0.20); }
+.pill-yellow { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+.pill-blue   { background: var(--blue-bg);   color: var(--blue);   border: 1px solid rgba(96,165,250,0.2); }
+.pill-purple { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(192,132,252,0.2); }
+.pill-gray   { background: rgba(139,148,158,.08); color: var(--text2); border: 1px solid var(--border2); }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap { display: flex; align-items: center; gap: 8px; }
+.progress-bar { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; min-width: 60px; }
+.progress-fill { height: 100%; border-radius: 3px; transition: width .5s; }
+.fill-green  { background: var(--green); }
+.fill-yellow { background: var(--yellow); }
+.fill-red    { background: var(--red); }
+.progress-text { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--text2); width: 36px; text-align: right; }
+
+/* ── STOCK ── */
+.stock-cell { display: flex; flex-direction: column; gap: 3px; }
+.stock-numbers { display: flex; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+.s-have { color: var(--green); }
+.s-need { color: var(--text2); }
+.s-gap  { color: var(--red); font-weight: 700; }
+
+/* ── ACTION ICONS ── */
+.actions { display: flex; gap: 6px; }
+
+.icon-btn {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all .15s;
+}
+
+.icon-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp .2s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+.modal-close { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); cursor: pointer; font-size: 1rem; padding: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all .15s; }
+.modal-close:hover { color: var(--text); border-color: var(--border2); }
+.modal-body { padding: 22px 24px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 7px; }
+.form-group.full { grid-column: 1 / -1; }
+
+label { font-size: 0.73rem; color: var(--text2); font-weight: 600; letter-spacing: 0.3px; }
+
+input, select, textarea {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Sora', 'Noto Sans TC', sans-serif;
+  font-size: 0.84rem;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  width: 100%;
+}
+
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+input::placeholder, textarea::placeholder { color: var(--text3); }
+select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8fa8' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+textarea { resize: vertical; min-height: 70px; }
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.filter-bar input { flex: 1; min-width: 160px; max-width: 280px; }
+.filter-bar select { min-width: 130px; max-width: 180px; }
+
+/* ── ALLIANCE CARDS ── */
+.alliance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.alliance-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+
+.alliance-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 10px 24px rgba(127, 139, 134, 0.10); }
+.ac-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.ac-name { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+.ac-type { font-size: 0.7rem; color: var(--text3); margin-top: 3px; }
+.ac-meta { display: flex; flex-direction: column; gap: 8px; }
+.ac-row { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+.ac-row .lbl { color: var(--text3); width: 64px; flex-shrink: 0; font-size: 0.72rem; }
+.ac-row .val { color: var(--text2); }
+
+/* ── EMPTY ── */
+.empty { text-align: center; padding: 60px 20px; color: var(--text3); font-size: 0.85rem; }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 18px; flex-wrap: wrap; background: var(--surface2); padding: 4px; border-radius: 10px; width: fit-content; }
+
+.tab {
+  padding: 6px 16px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  color: var(--text2);
+  background: transparent;
+  transition: all .15s;
+}
+
+.tab:hover { color: var(--text); }
+.tab.active { background: var(--surface3); color: var(--accent); border-color: var(--border2); box-shadow: 0 4px 12px rgba(95, 82, 72, 0.08); }
+
+/* ── NOTIF BAR ── */
+.notif-bar {
+  background: rgba(184,134,124,0.10);
+  border: 1px solid rgba(184,134,124,0.20);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 0.82rem;
+  color: var(--red);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── ROLE BANNER ── */
+.role-banner {
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid;
+}
+
+.role-banner.admin-banner  { background: rgba(143,133,120,0.10); border-color: rgba(143,133,120,0.18); color: var(--accent); }
+.role-banner.client-banner { background: rgba(142,163,176,0.10);  border-color: rgba(142,163,176,0.18);  color: var(--blue); }
+.role-banner.vendor-banner { background: rgba(142,166,146,0.10);  border-color: rgba(142,166,146,0.18);  color: var(--green); }
+
+/* ── GANTT CHART ── */
+.gantt-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.gantt-header {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.gantt-label-col {
+  width: 200px;
+  flex-shrink: 0;
+  padding: 10px 14px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  border-right: 1px solid var(--border);
+  background: var(--surface2);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.gantt-dates {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+}
+
+.gantt-month {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+}
+
+.gantt-month-label {
+  padding: 4px 8px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+  text-align: center;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.gantt-days {
+  display: flex;
+}
+
+.gantt-day {
+  width: 28px;
+  flex-shrink: 0;
+  padding: 4px 0;
+  text-align: center;
+  font-size: 0.6rem;
+  color: var(--text3);
+  border-right: 1px solid rgba(255,255,255,0.04);
+}
+
+.gantt-day.today { background: rgba(108,142,245,0.15); color: var(--accent); font-weight: 700; }
+.gantt-day.weekend { background: rgba(127, 139, 134, 0.04); }
+
+.gantt-body { overflow-x: auto; }
+
+.gantt-row {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  min-height: 44px;
+}
+
+.gantt-row:last-child { border-bottom: none; }
+.gantt-row:hover { background: rgba(127, 139, 134, 0.04); }
+
+.gantt-row-label {
+  width: 200px;
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.gantt-row-label .order-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--accent);
+}
+
+.gantt-row-label .order-product {
+  font-size: 0.75rem;
+  color: var(--text2);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.gantt-row-timeline {
+  flex: 1;
+  position: relative;
+  min-width: 840px;
+}
+
+.gantt-bar-wrap {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  cursor: pointer;
+  transition: filter .15s;
+}
+
+.gantt-bar-wrap:hover { filter: brightness(1.2); }
+
+.gantt-bar-blue   { background: rgba(88,166,255,0.3);  border: 1px solid rgba(88,166,255,0.6);  color: var(--blue); }
+.gantt-bar-green  { background: rgba(63,185,80,0.3);   border: 1px solid rgba(63,185,80,0.6);   color: var(--green); }
+.gantt-bar-yellow { background: rgba(240,165,0,0.3);   border: 1px solid rgba(240,165,0,0.6);   color: var(--yellow); }
+.gantt-bar-red    { background: rgba(248,81,73,0.3);   border: 1px solid rgba(248,81,73,0.6);   color: var(--red); }
+.gantt-bar-purple { background: rgba(188,140,255,0.3); border: 1px solid rgba(188,140,255,0.6); color: var(--purple); }
+
+.gantt-progress-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  border-radius: 3px;
+  opacity: 0.4;
+}
+
+.gantt-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  opacity: 0.6;
+  z-index: 2;
+}
+
+.gantt-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.gantt-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text2);
+}
+
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+}
+
+/* ── MOBILE ── */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 99;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -230px;
+    top: 96px;
+    height: calc(100vh - 96px);
+    z-index: 100;
+    transition: left .25s ease;
+  }
+
+  .sidebar.open { left: 0; }
+  .sidebar-overlay.open { display: block; }
+  .hamburger { display: block; }
+  .main { padding: 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-value { font-size: 1.3rem; }
+  .form-grid { grid-template-columns: 1fr; }
+  .filter-bar input { max-width: 100%; flex-basis: 100%; }
+  table { min-width: 600px; }
+  .alliance-grid { grid-column: 1; }
+  .page-header { flex-direction: column; align-items: flex-start; }
+  .role-bar { flex-wrap: wrap; height: auto; padding: 6px 12px; }
+  .role-indicator { display: none; }
+}
+
+/* ── VENDOR PAGE SPECIFIC ── */
+.vendor-task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 14px;
+  transition: border-color .2s, transform .2s;
+}
+
+.vendor-task-card:hover { border-color: var(--role-vendor); transform: translateY(-1px); }
+
+.vtc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.vtc-id { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--role-vendor); }
+.vtc-product { font-weight: 700; font-size: 1rem; margin-top: 3px; color: var(--text); }
+.vtc-deadline { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text2); }
+
+.vtc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.vtc-meta-item { display: flex; flex-direction: column; gap: 4px; }
+.vtc-meta-label { font-size: 0.65rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; }
+.vtc-meta-value { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--text); }
+
+/* ── CLIENT PAGE SPECIFIC ── */
+.client-order-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  margin-bottom: 14px;
+  transition: border-color .2s, transform .2s;
+}
+
+.client-order-card:hover { border-color: var(--role-client); transform: translateY(-1px); }
+
+.coc-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.coc-id { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--role-client); }
+.coc-product { font-weight: 700; font-size: 1.05rem; margin-top: 3px; color: var(--text); }
+
+.coc-timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 14px 0;
+  position: relative;
+}
+
+.coc-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.coc-step-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid var(--border2);
+  background: var(--surface2);
+  color: var(--text3);
+}
+
+.coc-step-dot.done { background: var(--green); border-color: var(--green); color: #000; box-shadow: 0 0 12px rgba(52,211,153,0.4); }
+.coc-step-dot.active { background: var(--blue); border-color: var(--blue); color: #fff; animation: pulse 2s infinite; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(96,165,250,0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(96,165,250,0); }
+}
+
+.coc-step-label { font-size: 0.65rem; color: var(--text3); margin-top: 6px; text-align: center; max-width: 60px; }
+.coc-step-date  { font-size: 0.6rem; font-family: 'JetBrains Mono', monospace; color: var(--text2); margin-top: 2px; text-align: center; }
+
+.coc-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.coc-connector.done { background: var(--green); }
+.coc-connector.active { background: linear-gradient(to right, var(--green), var(--blue)); }
+
+/* ── SCROLL AREA ── */
+.scroll-area { overflow-x: auto; }
+
+/* ── GANTT SCROLL ── */
+.gantt-scroll { overflow-x: auto; }
+
+/* ── AUTH GATE ── */
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  background: rgba(239, 231, 223, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  padding: 24px;
+}
+.auth-gate.open { display: flex; }
+.auth-card {
+  width: 100%;
+  max-width: 940px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  box-shadow: 0 22px 60px rgba(95, 82, 72, 0.18);
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+}
+.auth-left {
+  padding: 44px 40px;
+  background: linear-gradient(135deg, rgba(143,133,120,0.08) 0%, rgba(167,154,179,0.05) 100%);
+  border-right: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.auth-left::before {
+  content: '';
+  position: absolute;
+  top: -60px; right: -60px;
+  width: 220px; height: 220px;
+  background: radial-gradient(circle, rgba(143,133,120,0.12), transparent 70%);
+  border-radius: 50%;
+}
+.auth-right { padding: 38px 36px 32px; background: var(--surface2); }
+.auth-kicker { font-size: .7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; font-family: 'JetBrains Mono', monospace; }
+.auth-title { font-size: 1.8rem; line-height: 1.25; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.auth-desc { color: var(--text2); line-height: 1.8; font-size: .9rem; max-width: 420px; }
+.auth-points { margin-top: 24px; display: grid; gap: 14px; }
+.auth-point { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: var(--text2); line-height: 1.7; }
+.auth-point strong { color: var(--text); }
+.auth-form-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 18px; }
+.auth-row { display:flex; gap:10px; flex-wrap: wrap; }
+.auth-panel {
+  margin-top: 16px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface);
+}
+.auth-panel summary { cursor: pointer; font-size: .83rem; font-weight: 600; color: var(--text2); }
+.auth-status {
+  margin-top: 12px;
+  min-height: 22px;
+  font-size: .76rem;
+  color: var(--text2);
+}
+.mode-pill {
+  display:inline-flex; align-items:center; gap:8px; padding: 6px 12px; border-radius: 999px;
+  background: var(--surface2); border:1px solid var(--border2); font-size:.76rem; color:var(--text2);
+}
+.mode-pill strong { color: var(--text); }
+.user-chip {
+  display:inline-flex; align-items:center; gap:8px; padding:7px 12px; border-radius:999px; border:1px solid var(--border2);
+  background: var(--surface2); font-size:.76rem; color:var(--text2); white-space:nowrap;
+}
+.user-chip strong { color: var(--text); }
+.firebase-live .role-btn[data-demo="1"] { display: none; }
+.firebase-live .role-bar-label::after { content: 'Firebase'; }
+@media (max-width: 900px) {
+  .auth-card { grid-template-columns: 1fr; }
+  .auth-left { border-right:none; border-bottom:1px solid var(--border); }
+}
+
+/* ── ROLE BANNER ── */
+.role-banner {
+  border-radius: 10px;
+  padding: 12px 18px;
+  margin-bottom: 22px;
+  font-size: 0.83rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid;
+}
+
+.role-banner.admin-banner  { background: rgba(143,133,120,0.10); border-color: rgba(143,133,120,0.18); color: var(--accent); }
+.role-banner.client-banner { background: rgba(142,163,176,0.10);  border-color: rgba(142,163,176,0.18);  color: var(--blue); }
+.role-banner.vendor-banner { background: rgba(142,166,146,0.10);  border-color: rgba(142,166,146,0.18);  color: var(--green); }
+
+
+/* ── REQUEST / APPROVALS ── */
+.auth-subtabs { display:flex; gap:8px; margin:18px 0 14px; flex-wrap:wrap; }
+.auth-subtab {
+  padding:8px 14px; border-radius:999px; border:1px solid var(--border2); background:var(--surface);
+  color:var(--text2); cursor:pointer; font-size:.78rem; font-weight:600; transition:all .18s;
+}
+.auth-subtab.active { background: var(--surface3); color: var(--text); border-color: var(--accent); }
+.auth-view { display:none; }
+.auth-view.active { display:block; }
+.request-helper { font-size:.73rem; color: var(--text3); line-height:1.7; margin-top:6px; }
+.approval-card {
+  background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg); padding:20px; box-shadow: var(--shadow);
+}
+.approval-kpi { display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:18px; }
+.approval-mini { background: var(--surface2); border:1px solid var(--border); border-radius: 12px; padding:14px; }
+.approval-mini .label { font-size:.72rem; color:var(--text2); margin-bottom:6px; }
+.approval-mini .value { font-family:'JetBrains Mono',monospace; font-size:1.2rem; color:var(--text); font-weight:700; }
+.approval-empty { padding:28px; text-align:center; color:var(--text3); }
+
+</style>
+</head>
+<body>
+
+<div class="auth-gate open" id="auth-gate">
+  <div class="auth-card">
+    <div class="auth-left">
+      <div class="auth-kicker">OEM HUB · Secure Portal</div>
+      <div class="auth-title">客戶、廠商、管理者<br>走同一套系統，但看不到彼此。</div>
+      <div class="auth-desc">這版已改成可接 Firebase Auth + Firestore 的整合骨架。正式上線時，資料由登入身份決定可見範圍，不再只是前端假切換。</div>
+      <div class="auth-points">
+        <div class="auth-point">🔒 <span><strong>客戶</strong>只看自己的訂單與共享更新，不顯示廠商身分。</span></div>
+        <div class="auth-point">🏭 <span><strong>廠商</strong>只看分配給自己的任務，不知道客戶與其他廠商。</span></div>
+        <div class="auth-point">🧭 <span><strong>管理者</strong>可以查看完整鏈路、建立訂單、分派任務、寫共享更新。</span></div>
+      </div>
+    </div>
+    <div class="auth-right">
+      <div class="auth-form-title">登入 / 帳號申請</div>
+      <div class="auth-subtabs">
+        <button class="auth-subtab active" id="auth-tab-login" onclick="switchAuthView('login')">登入</button>
+        <button class="auth-subtab" id="auth-tab-register" onclick="switchAuthView('register')">申請帳號</button>
+      </div>
+
+      <div class="auth-view active" id="auth-view-login">
+        <div class="form-grid" style="grid-template-columns:1fr;gap:12px">
+          <div class="form-group">
+            <label>帳號 Email</label>
+            <input type="email" id="login-email" placeholder="admin@company.com">
+          </div>
+          <div class="form-group">
+            <label>密碼</label>
+            <input type="password" id="login-password" placeholder="••••••••">
+          </div>
+        </div>
+        <div class="auth-row" style="margin-top:14px">
+          <button class="btn btn-primary" onclick="loginWithFirebase()">登入 Firebase</button>
+          <button class="btn btn-outline" onclick="startDemoMode()">先看 Demo</button>
+        </div>
+        <details class="auth-panel">
+          <summary>貼上 Firebase config（第一次設定）</summary>
+          <div style="margin-top:12px;display:grid;gap:12px">
+            <textarea id="firebase-config-input" style="min-height:180px" placeholder='{"apiKey":"","authDomain":"","projectId":"","storageBucket":"","messagingSenderId":"","appId":""}'></textarea>
+            <div class="auth-row">
+              <button class="btn btn-primary" onclick="saveFirebaseConfig()">儲存設定</button>
+              <button class="btn btn-outline" onclick="clearFirebaseConfig()">清除設定</button>
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="auth-view" id="auth-view-register">
+        <div class="form-grid" style="grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label>申請類型</label>
+            <select id="req-type">
+              <option value="client">客戶</option>
+              <option value="vendor">廠商</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>公司名稱</label>
+            <input type="text" id="req-company" placeholder="公司 / 單位名稱">
+          </div>
+          <div class="form-group">
+            <label>聯絡人</label>
+            <input type="text" id="req-name" placeholder="申請人姓名">
+          </div>
+          <div class="form-group">
+            <label>聯絡 Email</label>
+            <input type="email" id="req-email" placeholder="name@company.com">
+          </div>
+          <div class="form-group">
+            <label>登入密碼</label>
+            <input type="password" id="req-password" placeholder="至少 6 碼">
+          </div>
+          <div class="form-group">
+            <label>聯絡電話</label>
+            <input type="text" id="req-phone" placeholder="09xx-xxx-xxx / 公司電話">
+          </div>
+          <div class="form-group full">
+            <label>補充說明</label>
+            <textarea id="req-notes" placeholder="例如想查看哪張訂單、所屬公司、合作背景等"></textarea>
+          </div>
+        </div>
+        <div class="request-helper">送出後，帳號會先建立為 <strong>pending</strong>，只有管理者審核通過後才會正式開通，不會讓對方自己決定權限。</div>
+        <div class="auth-row" style="margin-top:14px">
+          <button class="btn btn-primary" onclick="registerRequestFirebase()">送出申請</button>
+          <button class="btn btn-outline" onclick="switchAuthView('login')">回登入</button>
+        </div>
+      </div>
+
+      <div class="auth-status" id="auth-status">已內建 Firebase 設定，可直接登入；若要切換專案，也可改貼自己的 config。</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ ROLE SWITCHER ══ -->
+<div class="role-bar">
+  <span class="role-bar-label">Demo 入口：</span>
+  <button class="role-btn active-admin" id="role-admin" data-demo="1" onclick="switchRole('admin')">🔐 管理者</button>
+  <button class="role-btn" id="role-client" data-demo="1" onclick="switchRole('client')">👤 客戶視角</button>
+  <button class="role-btn" id="role-vendor" data-demo="1" onclick="switchRole('vendor')">🏭 廠商視角</button>
+  <div class="role-indicator">
+    <div class="role-dot" id="role-dot"></div>
+    <span id="role-indicator-text">管理者模式 — 可查看全部資訊</span>
+  </div>
+</div>
+
+<!-- ══ HEADER ══ -->
+<header>
+  <div style="display:flex;align-items:center;gap:12px">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="logo">OEM<span>·HUB</span></div>
+  </div>
+  <div class="nav-actions">
+    <div id="account-switcher-slot"></div>
+    <span style="font-size:0.78rem;color:var(--text3);display:none" id="today-date"></span>
+    <button class="btn btn-primary" id="btn-new-order" onclick="openModal('modal-order')">＋ 新增訂單</button>
+  </div>
+</header>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<div class="app">
+
+  <!-- ══ SIDEBAR — ADMIN ══ -->
+  <aside class="sidebar" id="sidebar-admin" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">主選單</div>
+      <div class="sidebar-item active" onclick="showPage('dashboard', this)">
+        <span class="icon">📊</span> 總覽儀表板
+      </div>
+      <div class="sidebar-item" onclick="showPage('orders', this)">
+        <span class="icon">📋</span> 訂單管理
+        <span class="badge">3</span>
+      </div>
+      <div class="sidebar-item" onclick="showPage('approvals', this)">
+        <span class="icon">✅</span> 帳號審核
+        <span class="badge" id="approval-badge">0</span>
+      </div>
+      <div class="sidebar-item" onclick="showPage('gantt', this)">
+        <span class="icon">📅</span> 甘特圖月曆
+      </div>
+      <div class="sidebar-item" onclick="showPage('stock', this)">
+        <span class="icon">📦</span> 庫存 & 備料
+        <span class="badge">2</span>
+      </div>
+      <div class="sidebar-item" onclick="showPage('delivery', this)">
+        <span class="icon">🚚</span> 交貨追蹤
+      </div>
+      <div class="sidebar-item" onclick="showPage('alliances', this)">
+        <span class="icon">🏭</span> 廠商聯盟
+      </div>
+      <div class="sidebar-item" onclick="showPage('plan', this)">
+        <span class="icon">⚙️</span> 生產計畫
+      </div>
+    </div>
+    <div class="sidebar-section" style="margin-top:12px">
+      <div class="sidebar-label">快速工具</div>
+      <div class="sidebar-item" onclick="openModal('modal-order')">
+        <span class="icon">✏️</span> 新增訂單
+      </div>
+      <div class="sidebar-item" onclick="openModal('modal-vendor')">
+        <span class="icon">＋</span> 新增廠商
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ SIDEBAR — CLIENT ══ -->
+  <aside class="sidebar" id="sidebar-client" style="display:none">
+    <div class="sidebar-section">
+      <div class="sidebar-label">我的訂單</div>
+      <div class="sidebar-item active" onclick="showPage('client-orders', this)">
+        <span class="icon">📦</span> 訂單進度
+      </div>
+      <div class="sidebar-item" onclick="showPage('client-delivery', this)">
+        <span class="icon">🚚</span> 交貨狀況
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ SIDEBAR — VENDOR ══ -->
+  <aside class="sidebar" id="sidebar-vendor" style="display:none">
+    <div class="sidebar-section">
+      <div class="sidebar-label">我的任務</div>
+      <div class="sidebar-item active" onclick="showPage('vendor-tasks', this)">
+        <span class="icon">⚙️</span> 生產任務
+      </div>
+      <div class="sidebar-item" onclick="showPage('vendor-gantt', this)">
+        <span class="icon">📅</span> 我的排程
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <!-- ══════════════════════════════
+         ADMIN PAGES
+    ══════════════════════════════ -->
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">總覽儀表板</div>
+          <div class="page-subtitle" id="dash-date">今日狀況一覽</div>
+        </div>
+        <button class="btn btn-outline" onclick="refreshAll()">↻ 重新整理</button>
+      </div>
+
+      <div class="role-banner admin-banner">
+        🔐 <strong>管理者模式</strong> — 你可以同時看到客戶訂單與廠商資訊，是唯一知道完整鏈路的角色。
+      </div>
+
+      <div class="notif-bar">
+        ⚠ <strong>需注意：</strong>
+        訂單 <strong>#A-2024-007</strong> 缺料 <strong>800 pcs</strong>，交期剩 <strong>5 天</strong>；
+        廠商「永成金屬」本週進度落後 <strong>15%</strong>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card c-blue"><div class="stat-label">進行中訂單</div><div class="stat-value" id="s-active">8</div><div class="stat-sub">↑ 本月共 12 單</div></div>
+        <div class="stat-card c-green"><div class="stat-label">本月已交貨</div><div class="stat-value" id="s-done">4</div><div class="stat-sub">準時率 100%</div></div>
+        <div class="stat-card c-red"><div class="stat-label">缺料警告</div><div class="stat-value" id="s-lack">2</div><div class="stat-sub">需立即補料</div></div>
+        <div class="stat-card c-yellow"><div class="stat-label">本週交貨</div><div class="stat-value" id="s-week">3</div><div class="stat-sub">最近：週五</div></div>
+        <div class="stat-card c-purple"><div class="stat-label">合作廠商</div><div class="stat-value" id="s-vendors">6</div><div class="stat-sub">2 廠生產中</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title"><span class="dot"></span> 訂單進度快覽</div>
+          <button class="btn btn-outline btn-sm" onclick="showAdminPage('orders')">查看全部</button>
+        </div>
+        <div class="table-wrap">
+          <table id="dash-table">
+            <thead>
+              <tr>
+                <th>訂單編號</th>
+                <th>客戶</th>
+                <th>產品</th>
+                <th>數量</th>
+                <th>發包廠商</th>
+                <th>進度</th>
+                <th>交貨日</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody id="dash-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ORDERS (ADMIN) -->
+    <div id="page-orders" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">訂單管理</div>
+          <div class="page-subtitle">客戶訂單 ↔ 廠商發單 全流程追蹤</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-order')">＋ 新增訂單</button>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" placeholder="🔍 搜尋訂單、客戶、產品…" id="order-search" oninput="renderOrders()">
+        <select onchange="renderOrders()" id="order-status-filter">
+          <option value="">全部狀態</option>
+          <option value="生產中">生產中</option>
+          <option value="待出貨">待出貨</option>
+          <option value="已交貨">已交貨</option>
+          <option value="缺料">缺料</option>
+          <option value="新單">新單</option>
+        </select>
+        <select onchange="renderOrders()" id="order-vendor-filter">
+          <option value="">全部廠商</option>
+        </select>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title"><span class="dot"></span> 更新紀錄 / 可見範圍</div>
+          <button class="btn btn-outline btn-sm" onclick="openUpdateModal()">＋ 新增更新</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>時間</th><th>訂單</th><th>階段</th><th>內部訊息</th><th>客戶可見</th><th>廠商可見</th><th>來源</th>
+              </tr>
+            </thead>
+            <tbody id="updates-admin-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>訂單號</th>
+              <th>客戶</th>
+              <th>產品 / 規格</th>
+              <th>數量</th>
+              <th>發包廠商</th>
+              <th>庫存</th>
+              <th>計畫量</th>
+              <th>交貨日</th>
+              <th>收貨確認</th>
+              <th>狀態</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+
+    <!-- APPROVALS (ADMIN) -->
+    <div id="page-approvals" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">帳號審核</div>
+          <div class="page-subtitle">客戶 / 廠商可自行送出申請，但只有你核准後才會正式開通</div>
+        </div>
+        <button class="btn btn-outline" onclick="refreshApprovalRequests()">↻ 重新載入申請</button>
+      </div>
+
+      <div class="approval-kpi">
+        <div class="approval-mini"><div class="label">待審核</div><div class="value" id="approval-count-pending">0</div></div>
+        <div class="approval-mini"><div class="label">客戶申請</div><div class="value" id="approval-count-client">0</div></div>
+        <div class="approval-mini"><div class="label">廠商申請</div><div class="value" id="approval-count-vendor">0</div></div>
+      </div>
+
+      <div class="approval-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>申請時間</th>
+                <th>類型</th>
+                <th>公司</th>
+                <th>聯絡人</th>
+                <th>Email</th>
+                <th>電話</th>
+                <th>狀態</th>
+                <th>備註</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="approvals-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- GANTT PAGE (ADMIN) -->
+    <div id="page-gantt" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">甘特圖月曆</div>
+          <div class="page-subtitle">所有訂單 & 生產計畫的時間軸全覽</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline btn-sm" onclick="ganttPrev()">← 上月</button>
+          <span id="gantt-month-label" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text2)"></span>
+          <button class="btn btn-outline btn-sm" onclick="ganttNext()">下月 →</button>
+        </div>
+      </div>
+
+      <div class="gantt-controls">
+        <div class="tabs" style="margin-bottom:0">
+          <button class="tab active" onclick="setGanttMode('orders',this)">訂單</button>
+          <button class="tab" onclick="setGanttMode('plans',this)">生產計畫</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.75rem;color:var(--text3)">
+          <span>■</span> 橙線 = 今日
+        </div>
+      </div>
+
+      <div class="gantt-container" id="gantt-wrap">
+        <!-- rendered by JS -->
+      </div>
+
+      <div class="gantt-legend" id="gantt-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(88,166,255,0.5)"></div>生產中</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(240,165,0,0.5)"></div>待出貨 / 新單</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(248,81,73,0.5)"></div>缺料</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(63,185,80,0.5)"></div>已交貨</div>
+        <div class="legend-item"><div class="legend-dot" style="background:rgba(240,165,0,0.8);width:2px;height:14px;border-radius:1px"></div>今日</div>
+      </div>
+    </div>
+
+    <!-- STOCK (ADMIN) -->
+    <div id="page-stock" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">庫存 & 備料</div>
+          <div class="page-subtitle">現有料件數量、缺口與補料計畫</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-stock')">＋ 更新庫存</button>
+      </div>
+
+      <div class="stats-grid" style="margin-bottom:20px">
+        <div class="stat-card c-green"><div class="stat-label">庫存充足</div><div class="stat-value">4</div><div class="stat-sub">料件品項</div></div>
+        <div class="stat-card c-yellow"><div class="stat-label">庫存偏低</div><div class="stat-value">3</div><div class="stat-sub">建議補料</div></div>
+        <div class="stat-card c-red"><div class="stat-label">嚴重缺料</div><div class="stat-value">2</div><div class="stat-sub">立即採購</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title" style="margin-bottom:14px"><span class="dot"></span> 料件庫存明細</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>料號 / 品名</th>
+                <th>關聯訂單</th>
+                <th>需求量</th>
+                <th>現有量</th>
+                <th>缺口</th>
+                <th>需補數量</th>
+                <th>庫存率</th>
+                <th>預計到料</th>
+                <th>採購狀態</th>
+              </tr>
+            </thead>
+            <tbody id="stock-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELIVERY (ADMIN) -->
+    <div id="page-delivery" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">交貨追蹤</div>
+          <div class="page-subtitle">廠商出貨 → 你收貨 → 交客戶 全時間軸</div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" onclick="switchDeliveryTab('all',this)">全部</button>
+        <button class="tab" onclick="switchDeliveryTab('pending',this)">待出貨</button>
+        <button class="tab" onclick="switchDeliveryTab('shipped',this)">運送中</button>
+        <button class="tab" onclick="switchDeliveryTab('received',this)">已收貨</button>
+        <button class="tab" onclick="switchDeliveryTab('done',this)">已交客戶</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>訂單號</th>
+              <th>廠商</th>
+              <th>產品</th>
+              <th>數量</th>
+              <th>廠商出貨日</th>
+              <th>預計到倉</th>
+              <th>實際收貨</th>
+              <th>交客戶日</th>
+              <th>客戶確認</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody id="delivery-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ALLIANCES (ADMIN) -->
+    <div id="page-alliances" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">廠商聯盟</div>
+          <div class="page-subtitle">合作廠商資訊與產能聯盟關係</div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('modal-vendor')">＋ 新增廠商</button>
+      </div>
+      <div class="alliance-grid" id="alliance-grid"></div>
+    </div>
+
+    <!-- PLAN (ADMIN) -->
+    <div id="page-plan" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">生產計畫</div>
+          <div class="page-subtitle">各廠商生產排程與進度</div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>計畫編號</th>
+              <th>訂單號</th>
+              <th>廠商</th>
+              <th>產品</th>
+              <th>計畫量</th>
+              <th>已完成</th>
+              <th>進度</th>
+              <th>開始日</th>
+              <th>預計完工</th>
+              <th>備註</th>
+            </tr>
+          </thead>
+          <tbody id="plan-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         CLIENT PAGES
+    ══════════════════════════════ -->
+
+    <!-- CLIENT ORDERS -->
+    <div id="page-client-orders" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">我的訂單進度</div>
+          <div class="page-subtitle">僅顯示此帳號可查看的訂單狀態與交貨資訊</div>
+        </div>
+      </div>
+
+      <div class="role-banner client-banner">
+        👤 <strong>客戶視角</strong> — 你只能看到自己的訂單進度與預計交貨日。廠商資訊與內部細節不對外顯示。
+      </div>
+
+      <div class="stats-grid" style="max-width:600px">
+        <div class="stat-card c-blue"><div class="stat-label">進行中訂單</div><div class="stat-value" id="c-active">—</div><div class="stat-sub">處理中</div></div>
+        <div class="stat-card c-green"><div class="stat-label">已完成訂單</div><div class="stat-value" id="c-done">—</div><div class="stat-sub">本年度</div></div>
+        <div class="stat-card c-yellow"><div class="stat-label">即將交貨</div><div class="stat-value" id="c-soon">—</div><div class="stat-sub">7 天內</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title"><span class="dot"></span> 共享更新紀錄</div>
+        </div>
+        <div id="client-updates-list"></div>
+      </div>
+
+      <div id="client-orders-list"></div>
+    </div>
+
+    <!-- CLIENT DELIVERY -->
+    <div id="page-client-delivery" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">交貨狀況</div>
+          <div class="page-subtitle">預計到貨時間與確認收貨</div>
+        </div>
+      </div>
+
+      <div class="role-banner client-banner">
+        👤 <strong>客戶視角</strong> — 僅顯示與你相關的交貨紀錄。
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>訂單號</th>
+              <th>產品</th>
+              <th>數量</th>
+              <th>預計交貨日</th>
+              <th>實際交貨</th>
+              <th>確認收貨</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody id="client-delivery-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════
+         VENDOR PAGES
+    ══════════════════════════════ -->
+
+    <!-- VENDOR TASKS -->
+    <div id="page-vendor-tasks" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">我的生產任務</div>
+          <div class="page-subtitle">僅顯示此帳號被分配的生產任務</div>
+        </div>
+      </div>
+
+      <div class="role-banner vendor-banner">
+        🏭 <strong>廠商視角</strong> — 你只能看到分配給你的生產任務、料件需求與交期。客戶資訊與其他廠商資料不對外顯示。
+      </div>
+
+      <div class="stats-grid" style="max-width:600px">
+        <div class="stat-card c-green"><div class="stat-label">進行中任務</div><div class="stat-value" id="v-active">—</div><div class="stat-sub">待完成</div></div>
+        <div class="stat-card c-yellow"><div class="stat-label">本週截止</div><div class="stat-value" id="v-due">—</div><div class="stat-sub">需優先處理</div></div>
+        <div class="stat-card c-blue"><div class="stat-label">月產能使用</div><div class="stat-value" id="v-capacity">—</div><div class="stat-sub">pcs 已安排</div></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title"><span class="dot"></span> 可見更新紀錄</div>
+          <button class="btn btn-outline btn-sm" onclick="openUpdateModal()">＋ 回報更新</button>
+        </div>
+        <div id="vendor-updates-list"></div>
+      </div>
+
+      <div id="vendor-tasks-list"></div>
+    </div>
+
+    <!-- VENDOR GANTT -->
+    <div id="page-vendor-gantt" style="display:none">
+      <div class="page-header">
+        <div>
+          <div class="page-title">我的生產排程</div>
+          <div class="page-subtitle">僅顯示此帳號可查看的排程時間軸</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-outline btn-sm" onclick="vendorGanttPrev()">← 上月</button>
+          <span id="vgantt-month-label" style="font-family:'JetBrains Mono',monospace;font-size:0.82rem;color:var(--text2)"></span>
+          <button class="btn btn-outline btn-sm" onclick="vendorGanttNext()">下月 →</button>
+        </div>
+      </div>
+
+      <div class="role-banner vendor-banner">
+        🏭 <strong>廠商視角</strong> — 只顯示你的任務時間軸，不顯示其他廠商排程。
+      </div>
+
+      <div class="gantt-container" id="vendor-gantt-wrap">
+        <!-- rendered by JS -->
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ MODALS ══ -->
+<div class="modal-overlay" id="modal-order">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新增 / 編輯訂單</div>
+      <button class="modal-close" onclick="closeModal('modal-order')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>訂單編號</label><input type="text" id="f-order-id" placeholder="A-2024-xxx"></div>
+        <div class="form-group"><label>客戶名稱</label><input type="text" id="f-client" placeholder="客戶公司名"></div>
+        <div class="form-group full"><label>產品 / 規格</label><input type="text" id="f-product" placeholder="產品名稱、型號、規格"></div>
+        <div class="form-group"><label>需求數量 (pcs)</label><input type="number" id="f-qty" placeholder="0"></div>
+        <div class="form-group"><label>發包廠商</label><select id="f-vendor"><option value="">-- 選擇廠商 --</option></select></div>
+        <div class="form-group"><label>現有庫存量</label><input type="number" id="f-stock" placeholder="0"></div>
+        <div class="form-group"><label>計畫產量</label><input type="number" id="f-plan-qty" placeholder="0"></div>
+        <div class="form-group"><label>客戶交貨日</label><input type="date" id="f-delivery"></div>
+        <div class="form-group"><label>廠商出貨日</label><input type="date" id="f-ship-date"></div>
+        <div class="form-group"><label>狀態</label>
+          <select id="f-status">
+            <option value="新單">新單</option>
+            <option value="生產中">生產中</option>
+            <option value="缺料">缺料</option>
+            <option value="待出貨">待出貨</option>
+            <option value="已交貨">已交貨</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>備註</label><textarea id="f-notes" placeholder="特殊需求、注意事項…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-order')">取消</button>
+      <button class="btn btn-primary" onclick="saveOrder()">儲存訂單</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-vendor">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新增廠商</div>
+      <button class="modal-close" onclick="closeModal('modal-vendor')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>廠商名稱</label><input type="text" id="v-name" placeholder="廠商公司名稱"></div>
+        <div class="form-group"><label>類型 / 專長</label><input type="text" id="v-type" placeholder="金屬加工 / 塑膠射出…"></div>
+        <div class="form-group"><label>聯絡人</label><input type="text" id="v-contact" placeholder="姓名"></div>
+        <div class="form-group"><label>電話</label><input type="text" id="v-phone" placeholder="02-xxxx-xxxx"></div>
+        <div class="form-group"><label>月產能 (pcs)</label><input type="number" id="v-capacity" placeholder="0"></div>
+        <div class="form-group"><label>合作狀態</label>
+          <select id="v-status">
+            <option value="合作中">合作中</option>
+            <option value="評估中">評估中</option>
+            <option value="暫停">暫停</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>備註 / 特殊條件</label><textarea id="v-notes" placeholder="付款條件、最小訂量…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-vendor')">取消</button>
+      <button class="btn btn-primary" onclick="saveVendor()">儲存廠商</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-stock">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title">更新庫存</div>
+      <button class="modal-close" onclick="closeModal('modal-stock')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>料號 / 品名</label><input type="text" id="s-name" placeholder="料件名稱或料號"></div>
+        <div class="form-group"><label>關聯訂單</label><select id="s-order"></select></div>
+        <div class="form-group"><label>現有庫存</label><input type="number" id="s-have" placeholder="0"></div>
+        <div class="form-group"><label>預計到料日</label><input type="date" id="s-arrive"></div>
+        <div class="form-group full"><label>採購狀態</label>
+          <select id="s-pur-status">
+            <option value="充足">充足</option>
+            <option value="已下單">已下單</option>
+            <option value="待採購">待採購</option>
+            <option value="急採">急採</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-stock')">取消</button>
+      <button class="btn btn-primary" onclick="saveStock()">儲存</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+<script>
+let currentRole = 'admin';
+let currentPage = 'dashboard';
+let ganttOffset = 0;
+let ganttMode = 'orders';
+let vendorGanttOffset = 0;
+let deliveryTab = 'all';
+let currentUserId = 'U_ADMIN';
+
+const USERS = [
+  { id:'U_ADMIN', name:'Floriana / 管理者', role:'admin' },
+  { id:'U_CLIENT_DELTA', name:'台達電子 / 客戶', role:'client', clientId:'C001', clientName:'台達電子' },
+  { id:'U_VENDOR_V001', name:'永成金屬 / 廠商', role:'vendor', vendorId:'V001' },
+  { id:'U_VENDOR_V002', name:'鑫豐塑膠 / 廠商', role:'vendor', vendorId:'V002' },
+  { id:'U_VENDOR_V003', name:'台灣精機 / 廠商', role:'vendor', vendorId:'V003' },
+];
+
+const CLIENTS = [
+  { id:'C001', name:'台達電子' },
+  { id:'C002', name:'鴻海精密' },
+  { id:'C003', name:'廣達電腦' },
+  { id:'C004', name:'仁寶電腦' },
+  { id:'C005', name:'緯創資通' },
+  { id:'C006', name:'英業達' },
+  { id:'C007', name:'神達電腦' },
+];
+
+const DB = {
+  vendors: [
+    { id:'V001', name:'永成金屬',     type:'精密金屬加工',  contact:'陳大明', phone:'02-2345-6789', capacity:5000,  status:'合作中', notes:'付款 Net 30，最小訂量 500pcs' },
+    { id:'V002', name:'鑫豐塑膠',     type:'塑膠射出成型',  contact:'林小美', phone:'04-3456-7890', capacity:8000,  status:'合作中', notes:'可急單，加價 15%' },
+    { id:'V003', name:'台灣精機',     type:'CNC 精密加工', contact:'王技術', phone:'03-5678-1234', capacity:3000,  status:'合作中', notes:'品質穩定，交期略長' },
+    { id:'V004', name:'宏達表面處理', type:'電鍍 / 陽極處理', contact:'張處長', phone:'02-8765-4321', capacity:10000, status:'合作中', notes:'' },
+    { id:'V005', name:'宇宙組裝廠',   type:'組裝 & 包裝',   contact:'李組長', phone:'06-2222-3333', capacity:6000,  status:'評估中', notes:'新廠商，品質待確認' },
+    { id:'V006', name:'精誠電子',     type:'PCB & 電子組裝', contact:'黃工程師', phone:'03-7654-3210', capacity:2000,  status:'合作中', notes:'需 2 週前下單' },
+  ],
+  orders: [
+    { id:'A-2024-001', clientId:'C001', client:'台達電子', product:'鋁合金散熱片 H-2000', qty:3000, vendor:'V001', stock:3200, planQty:3000, delivery:'2024-06-10', shipDate:'2024-06-07', received:'2024-06-08', clientConfirm:'2024-06-10', status:'已交貨', notes:'' },
+    { id:'A-2024-002', clientId:'C002', client:'鴻海精密', product:'塑膠外殼 PS-102',    qty:5000, vendor:'V002', stock:4800, planQty:5200, delivery:'2024-06-20', shipDate:'', received:'', clientConfirm:'', status:'生產中', notes:'客戶要求黑色' },
+    { id:'A-2024-003', clientId:'C003', client:'廣達電腦', product:'CNC 支架 BK-55',     qty:1200, vendor:'V003', stock:800,  planQty:1200, delivery:'2024-06-14', shipDate:'2024-06-12', received:'', clientConfirm:'', status:'待出貨', notes:'' },
+    { id:'A-2024-004', clientId:'C004', client:'仁寶電腦', product:'電鍍鋅板 ZP-33',     qty:2000, vendor:'V004', stock:2100, planQty:2000, delivery:'2024-06-25', shipDate:'', received:'', clientConfirm:'', status:'生產中', notes:'' },
+    { id:'A-2024-005', clientId:'C005', client:'緯創資通', product:'組裝模組 AM-7',       qty:800,  vendor:'V005', stock:800,  planQty:800,  delivery:'2024-07-05', shipDate:'', received:'', clientConfirm:'', status:'新單', notes:'第一次合作，多確認' },
+    { id:'A-2024-006', clientId:'C006', client:'英業達',   product:'PCB 主板 MB-X1',     qty:500,  vendor:'V006', stock:500,  planQty:500,  delivery:'2024-07-10', shipDate:'', received:'', clientConfirm:'', status:'生產中', notes:'' },
+    { id:'A-2024-007', clientId:'C001', client:'台達電子', product:'鋁合金散熱片 H-2100', qty:4000, vendor:'V001', stock:3200, planQty:4000, delivery:'2024-06-19', shipDate:'', received:'', clientConfirm:'', status:'缺料', notes:'缺料 800pcs，急需補料' },
+    { id:'A-2024-008', clientId:'C007', client:'神達電腦', product:'塑膠蓋板 PC-08',      qty:1500, vendor:'V002', stock:600,  planQty:1500, delivery:'2024-07-01', shipDate:'', received:'', clientConfirm:'', status:'缺料', notes:'缺 900pcs' },
+  ],
+  vendorAssignments: [
+    { id:'VA-001', orderId:'A-2024-001', vendorId:'V001', phase:'加工', isPrimary:true },
+    { id:'VA-002', orderId:'A-2024-002', vendorId:'V002', phase:'射出', isPrimary:true },
+    { id:'VA-003', orderId:'A-2024-003', vendorId:'V003', phase:'CNC', isPrimary:true },
+    { id:'VA-004', orderId:'A-2024-004', vendorId:'V004', phase:'表面處理', isPrimary:true },
+    { id:'VA-005', orderId:'A-2024-005', vendorId:'V005', phase:'組裝', isPrimary:true },
+    { id:'VA-006', orderId:'A-2024-006', vendorId:'V006', phase:'電子組裝', isPrimary:true },
+    { id:'VA-007', orderId:'A-2024-007', vendorId:'V001', phase:'加工', isPrimary:true },
+    { id:'VA-008', orderId:'A-2024-007', vendorId:'V004', phase:'表面處理', isPrimary:false },
+    { id:'VA-009', orderId:'A-2024-008', vendorId:'V002', phase:'射出', isPrimary:true },
+  ],
+  stocks: [
+    { name:'鋁合金料棒 AL-6061', order:'A-2024-007', need:4000, have:3200, arrive:'2024-06-16', purStatus:'已下單' },
+    { name:'塑膠粒 ABS-Black',   order:'A-2024-008', need:1500, have:600,  arrive:'2024-06-18', purStatus:'急採' },
+    { name:'CNC 鋼材 SKD-11',    order:'A-2024-003', need:1200, have:1200, arrive:'-',          purStatus:'充足' },
+    { name:'鋅板 ZP 原料',       order:'A-2024-004', need:2000, have:2100, arrive:'-',          purStatus:'充足' },
+    { name:'PCB 空板 X1',        order:'A-2024-006', need:500,  have:320,  arrive:'2024-06-20', purStatus:'已下單' },
+    { name:'組裝螺絲 M3×8',      order:'A-2024-005', need:3200, have:2800, arrive:'2024-06-15', purStatus:'待採購' },
+    { name:'包裝盒 AM-7 專用',   order:'A-2024-005', need:800,  have:850,  arrive:'-',          purStatus:'充足' },
+    { name:'散熱膏 TG-50',       order:'A-2024-002', need:5000, have:5500, arrive:'-',          purStatus:'充足' },
+    { name:'塑膠粒 PS-White',    order:'A-2024-002', need:5000, have:4800, arrive:'2024-06-17', purStatus:'待採購' },
+  ],
+  plans: [
+    { id:'P-001', order:'A-2024-002', vendor:'V002', product:'塑膠外殼 PS-102',    planQty:5200, done:2100, start:'2024-06-01', end:'2024-06-18', notes:'進度正常' },
+    { id:'P-002', order:'A-2024-003', vendor:'V003', product:'CNC 支架 BK-55',     planQty:1200, done:1200, start:'2024-06-01', end:'2024-06-12', notes:'已完工待出貨' },
+    { id:'P-003', order:'A-2024-004', vendor:'V004', product:'電鍍鋅板 ZP-33',     planQty:2000, done:850,  start:'2024-06-05', end:'2024-06-22', notes:'進度落後 5%' },
+    { id:'P-004', order:'A-2024-006', vendor:'V006', product:'PCB 主板 MB-X1',     planQty:500,  done:180,  start:'2024-06-08', end:'2024-07-05', notes:'等待零件到貨' },
+    { id:'P-005', order:'A-2024-007', vendor:'V001', product:'鋁合金散熱片 H-2100', planQty:4000, done:1200, start:'2024-06-06', end:'2024-06-18', notes:'缺料中，已暫停' },
+    { id:'P-006', order:'A-2024-008', vendor:'V002', product:'塑膠蓋板 PC-08',      planQty:1500, done:300,  start:'2024-06-10', end:'2024-06-28', notes:'缺料等待' },
+  ],
+  updates: [
+    { id:'UPD-001', orderId:'A-2024-007', phase:'備料', createdAt:'2026-04-23 09:30', createdBy:'admin', vendorId:'V001', clientId:'C001', visibleTo:['admin','client:C001','vendor:V001'], adminMessage:'V001 鋁料缺 800pcs，已向原料商追料，預計 4/26 到料。', clientMessage:'原料補料中，目前交期暫維持，若有異動會即時更新。', vendorMessage:'原料補料中，請保留機台排程。' },
+    { id:'UPD-002', orderId:'A-2024-002', phase:'生產', createdAt:'2026-04-23 10:10', createdBy:'vendor:V002', vendorId:'V002', clientId:'C002', visibleTo:['admin','client:C002','vendor:V002'], adminMessage:'V002 回報射出完成 42%，夜班可再補 18%。', clientMessage:'目前生產中，進度正常。', vendorMessage:'已完成 42%，今日夜班續跑。' },
+    { id:'UPD-003', orderId:'A-2024-003', phase:'出貨', createdAt:'2026-04-23 11:05', createdBy:'admin', vendorId:'V003', clientId:'C003', visibleTo:['admin','client:C003','vendor:V003'], adminMessage:'已安排 6/12 廠商出貨，待我司收貨後轉客戶。', clientMessage:'已安排出貨，待到貨後更新簽收資訊。', vendorMessage:'請依 6/12 出貨排程處理。' },
+    { id:'UPD-004', orderId:'A-2024-001', phase:'完成', createdAt:'2026-04-22 17:20', createdBy:'admin', vendorId:'V001', clientId:'C001', visibleTo:['admin','client:C001','vendor:V001'], adminMessage:'客戶已簽收結案。', clientMessage:'訂單已完成，感謝確認收貨。', vendorMessage:'本案已結案。' },
+  ]
+};
+
+const statusPill = {
+  '已交貨': 'pill-green', '已完成': 'pill-green', '充足': 'pill-green', '合作中': 'pill-green', '已收貨': 'pill-green',
+  '生產中': 'pill-blue', '運送中': 'pill-blue', '已下單': 'pill-blue', '已出貨': 'pill-blue',
+  '待出貨': 'pill-yellow', '新單': 'pill-yellow', '待採購': 'pill-yellow', '評估中': 'pill-yellow',
+  '缺料': 'pill-red', '急採': 'pill-red', '暫停': 'pill-red',
+};
+function pill(text) { return `<span class="pill ${statusPill[text]||'pill-gray'}">${text}</span>`; }
+function progress(val, max) {
+  const pct = Math.min(100, Math.round((val || 0) / Math.max(max || 1,1) * 100));
+  const cls = pct >= 90 ? 'fill-green' : pct >= 50 ? 'fill-yellow' : 'fill-red';
+  return `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div><span class="progress-text">${pct}%</span></div>`;
+}
+function stockCell(have, need) {
+  const gap = Math.max(0, need - have);
+  return `<div class="stock-cell"><div class="stock-numbers"><span class="s-have">✓${(have||0).toLocaleString()}</span><span class="s-need">/${(need||0).toLocaleString()}</span></div>${gap > 0 ? `<span class="s-gap">缺 ${gap.toLocaleString()}</span>` : '<span style="color:var(--green);font-size:.72rem">✓ 足夠</span>'}</div>`;
+}
+function getVendorName(id){ return DB.vendors.find(v=>v.id===id)?.name || '—'; }
+function getClientName(id){ return CLIENTS.find(c=>c.id===id)?.name || DB.orders.find(o=>o.clientId===id)?.client || '—'; }
+function getAssignmentsForOrder(orderId){ return (DB.vendorAssignments || []).filter(a => a.orderId === orderId); }
+function getPrimaryVendorId(orderId){ return getAssignmentsForOrder(orderId).find(a => a.isPrimary)?.vendorId || DB.orders.find(o => o.id === orderId)?.vendor || ''; }
+function getVendorOrderIds(vendorId){ return [...new Set((DB.vendorAssignments || []).filter(a => a.vendorId === vendorId).map(a => a.orderId))]; }
+function getVisibleVendorAssignments(){ const u = getCurrentUser(); if (u.role === 'admin') return DB.vendorAssignments || []; if (u.role === 'vendor') return (DB.vendorAssignments || []).filter(a => a.vendorId === u.vendorId); return []; }
+function getVisibleFieldList(upd){ const list = upd.visibleTo || []; return list.map(x => x === 'admin' ? '管理者' : x.startsWith('client:') ? '客戶' : x.startsWith('vendor:') ? maskedVendorLabel(x.split(':')[1]) : x).join(' / '); }
+function getCurrentUser(){ return window.ACTIVE_USER || USERS.find(u=>u.id===currentUserId) || USERS[0]; }
+function maskedClientLabel(id){ return `客戶 ${String(id || '').replace(/^C/, '#')}`; }
+function maskedVendorLabel(id){ return `供應單位 ${String(id || '').replace(/^V/, '#')}`; }
+function isUrgent(dateStr){ if(!dateStr) return false; const d=new Date(dateStr); const now=new Date('2026-04-23'); const diff=(d-now)/86400000; return diff<=7; }
+function safe(s){ return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+function getVisibleOrders() {
+  const u = getCurrentUser();
+  if (u.role === 'admin') return DB.orders;
+  if (u.role === 'client') return DB.orders.filter(o => o.clientId === u.clientId);
+  if (u.role === 'vendor') {
+    const ids = new Set(getVendorOrderIds(u.vendorId));
+    return DB.orders.filter(o => ids.has(o.id));
+  }
+  return [];
+}
+function getVisiblePlans() {
+  const u = getCurrentUser();
+  if (u.role === 'admin') return DB.plans;
+  if (u.role === 'vendor') {
+    const ids = new Set(getVendorOrderIds(u.vendorId));
+    return DB.plans.filter(p => p.vendor === u.vendorId || ids.has(p.order));
+  }
+  return [];
+}
+function getVisibleUpdates() {
+  const u = getCurrentUser();
+  const all = DB.updates.slice();
+  if (u.role === 'admin') return all.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  if (u.role === 'client') return all.filter(x => (x.visibleTo || []).includes(`client:${u.clientId}`)).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  if (u.role === 'vendor') return all.filter(x => (x.visibleTo || []).includes(`vendor:${u.vendorId}`)).sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+  return [];
+}
+function messageForUser(upd) {
+
+  const u = getCurrentUser();
+  if (u.role === 'admin') return upd.adminMessage;
+  if (u.role === 'client') return upd.clientMessage || upd.adminMessage;
+  return upd.vendorMessage || upd.adminMessage;
+}
+function sourceLabel(createdBy){
+  const viewer = getCurrentUser();
+  if(createdBy==='admin') return viewer.role === 'admin' ? '管理者' : '系統 / 管理端';
+  if(createdBy.startsWith('vendor:')) return viewer.role === 'admin' ? getVendorName(createdBy.split(':')[1]) : '供應端更新';
+  return '系統更新';
+}
+
+function openModal(id){ document.getElementById(id)?.classList.add('open'); }
+function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
+function closeAllModals(){ document.querySelectorAll('.modal-overlay').forEach(x=>x.classList.remove('open')); }
+window.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('open'); });
+
+
+function renderAccountSwitcher() {
+  const slot = document.getElementById('account-switcher-slot');
+  if (!slot) return;
+  const u = getCurrentUser();
+  if (window.APP_MODE?.firebaseLive && u) {
+    slot.innerHTML = `
+      <span class="mode-pill">☁️ <strong>Firebase</strong> live</span>
+      <span class="user-chip">${u.role === 'admin' ? '🔐' : u.role === 'client' ? '👤' : '🏭'} <strong>${safe(u.name || u.email || '登入帳號')}</strong> · ${safe(u.role)}</span>
+      <button class="btn btn-outline btn-sm" onclick="logoutFirebase()">登出</button>
+    `;
+    return;
+  }
+  slot.innerHTML = `<span class="mode-pill">🧪 <strong>Demo</strong> mode</span><select id="account-switcher" onchange="switchAccount(this.value)" style="min-width:220px">
+    ${USERS.map(u=>`<option value="${u.id}" ${u.id===currentUserId?'selected':''}>${u.name}</option>`).join('')}
+  </select><button class="btn btn-outline btn-sm" onclick="showAuthGate()">改用 Firebase</button>`;
+}
+
+function switchAccount(userId){
+  if (window.APP_MODE?.firebaseLive) return;
+  currentUserId = userId;
+  const u = getCurrentUser();
+  currentRole = u.role;
+  syncRoleUI();
+  renderAccountSwitcher();
+  if (u.role === 'admin') showPage('dashboard', document.querySelector('#sidebar-admin .sidebar-item'));
+  if (u.role === 'client') showPage('client-orders', document.querySelector('#sidebar-client .sidebar-item'));
+  if (u.role === 'vendor') showPage('vendor-tasks', document.querySelector('#sidebar-vendor .sidebar-item'));
+}
+function switchRole(role){
+  if (window.APP_MODE?.firebaseLive) return;
+  const target = USERS.find(u => u.role === role && (role !== 'vendor' || u.vendorId === (getCurrentUser().vendorId || 'V001')) ) || USERS.find(u => u.role === role);
+  if (target) switchAccount(target.id);
+}
+function syncRoleUI(){
+  const u = getCurrentUser();
+  document.getElementById('role-admin').className = 'role-btn' + (u.role==='admin'?' active-admin':'');
+  document.getElementById('role-client').className = 'role-btn' + (u.role==='client'?' active-client':'');
+  document.getElementById('role-vendor').className = 'role-btn' + (u.role==='vendor'?' active-vendor':'');
+  const txtMap = {
+    admin: '管理者模式 — 可查看完整客戶 / 廠商鏈路',
+    client: '客戶視角 — 僅顯示自己的訂單與共享更新',
+    vendor: '廠商視角 — 僅顯示自己的任務與共享更新',
+  };
+  const colorMap = { admin:'var(--role-admin)', client:'var(--role-client)', vendor:'var(--role-vendor)' };
+  document.getElementById('role-dot').style.background = colorMap[u.role];
+  document.getElementById('role-indicator-text').textContent = txtMap[u.role];
+  document.getElementById('sidebar-admin').style.display  = u.role === 'admin'  ? '' : 'none';
+  document.getElementById('sidebar-client').style.display = u.role === 'client' ? '' : 'none';
+  document.getElementById('sidebar-vendor').style.display = u.role === 'vendor' ? '' : 'none';
+  document.getElementById('btn-new-order').style.display = u.role === 'admin' ? '' : 'none';
+  document.querySelector('.role-bar-label').textContent = window.APP_MODE?.firebaseLive ? 'Live 身份：' : 'Demo 入口：';
+  renderAccountSwitcher();
+}
+
+function showPage(name, el) {
+  document.querySelectorAll('[id^="page-"]').forEach(p => p.style.display = 'none');
+  const page = document.getElementById('page-' + name);
+  if (page) page.style.display = '';
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  if (el) el.classList.add('active');
+  currentPage = name;
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'orders') { renderOrders(); renderAdminUpdates(); populateVendorSelects(); }
+  if (name === 'approvals') renderApprovals();
+  if (name === 'stock') renderStock();
+  if (name === 'delivery') renderDelivery();
+  if (name === 'alliances') renderAlliances();
+  if (name === 'plan') renderPlan();
+  if (name === 'gantt') renderGantt();
+  if (name === 'client-orders') { renderClientOrders(); renderClientUpdates(); }
+  if (name === 'client-delivery') renderClientDelivery();
+  if (name === 'vendor-tasks') { renderVendorTasks(); renderVendorUpdates(); }
+  if (name === 'vendor-gantt') renderVendorGantt();
+}
+function showAdminPage(name) {
+  const items = document.querySelectorAll('#sidebar-admin .sidebar-item');
+  const pageMap = { dashboard:0, orders:1, approvals:2, gantt:3, stock:4, delivery:5, alliances:6, plan:7 };
+  showPage(name, items[pageMap[name] || 0]);
+}
+
+
+function renderApprovals(){
+  const tbody = document.getElementById('approvals-tbody');
+  if (!tbody) return;
+  const pending = (DB.pendingUsers || []).slice().sort((a,b)=>String(b.requestedAt||'').localeCompare(String(a.requestedAt||'')));
+  document.getElementById('approval-count-pending').textContent = pending.filter(x => (x.status||'pending') === 'pending').length;
+  document.getElementById('approval-count-client').textContent = pending.filter(x => x.requestType === 'client' && (x.status||'pending') === 'pending').length;
+  document.getElementById('approval-count-vendor').textContent = pending.filter(x => x.requestType === 'vendor' && (x.status||'pending') === 'pending').length;
+  const badge = document.getElementById('approval-badge');
+  if (badge) badge.textContent = String(pending.filter(x => (x.status||'pending') === 'pending').length);
+  if (!pending.length) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="approval-empty">目前沒有待審核申請</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = pending.map(req => {
+    const status = req.status || 'pending';
+    const canAct = getCurrentUser().role === 'admin' && status === 'pending';
+    return `<tr>
+      <td>${safe(req.requestedAt || '—')}</td>
+      <td>${pill(req.requestType === 'vendor' ? '廠商申請' : '客戶申請')}</td>
+      <td>${safe(req.companyName || '—')}</td>
+      <td>${safe(req.name || '—')}</td>
+      <td>${safe(req.email || '—')}</td>
+      <td>${safe(req.phone || '—')}</td>
+      <td>${status === 'approved' ? pill('已開通') : status === 'rejected' ? pill('已拒絕') : pill('待審核')}</td>
+      <td>${safe(req.notes || '—')}</td>
+      <td>${canAct ? `<div class="actions"><button class="icon-btn" title="核准" onclick="approvePendingUser('${safe(req.id)}')">✓</button><button class="icon-btn" title="拒絕" onclick="rejectPendingUser('${safe(req.id)}')">✕</button></div>` : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderDashboard() {
+  const tbody = document.getElementById('dash-tbody');
+  if (!tbody) return;
+  const recent = DB.orders.filter(o => o.status !== '已交貨').slice(0, 6);
+  tbody.innerHTML = recent.map(o => `<tr><td><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${o.id}</span></td><td>${o.client}</td><td style="max-width:140px;font-size:0.8rem">${o.product}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${o.qty.toLocaleString()}</td><td>${getVendorName(o.vendor)}</td><td style="min-width:120px">${progress(o.stock, o.qty)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:${isUrgent(o.delivery)?'var(--red)':'var(--text)'}">${o.delivery}</td><td>${pill(o.status)}</td></tr>`).join('');
+  document.getElementById('s-active').textContent = DB.orders.filter(o=>o.status!=='已交貨').length;
+  document.getElementById('s-done').textContent = DB.orders.filter(o=>o.status==='已交貨').length;
+  document.getElementById('s-lack').textContent = DB.orders.filter(o=>o.status==='缺料').length;
+  document.getElementById('s-week').textContent = DB.orders.filter(o=>isUrgent(o.delivery) && o.status!=='已交貨').length;
+  document.getElementById('s-vendors').textContent = DB.vendors.length;
+}
+
+function renderOrders() {
+  const search = (document.getElementById('order-search')?.value || '').toLowerCase();
+  const statusF = document.getElementById('order-status-filter')?.value || '';
+  const vendorF = document.getElementById('order-vendor-filter')?.value || '';
+  const rows = DB.orders.filter(o => {
+    const m = !search || [o.id, o.client, o.product, getVendorName(o.vendor)].join(' ').toLowerCase().includes(search);
+    return m && (!statusF || o.status === statusF) && (!vendorF || o.vendor === vendorF);
+  });
+  const tbody = document.getElementById('orders-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = rows.map(o => `<tr>
+    <td><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${o.id}</span></td>
+    <td><strong>${o.client}</strong></td>
+    <td style="max-width:160px">${o.product}</td>
+    <td style="font-family:'JetBrains Mono',monospace;text-align:right">${o.qty.toLocaleString()}</td>
+    <td>${getVendorName(o.vendor)}</td>
+    <td>${stockCell(o.stock, o.qty)}</td>
+    <td style="font-family:'JetBrains Mono',monospace;text-align:right">${o.planQty.toLocaleString()}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:${isUrgent(o.delivery)?'var(--red)':'var(--text)'}">${o.delivery}</td>
+    <td>${o.clientConfirm ? '<span style="color:var(--green)">✓ 已確認</span>' : '<span style="color:var(--text3)">待確認</span>'}</td>
+    <td>${pill(o.status)}</td>
+    <td><div class="actions"><button class="icon-btn" onclick="editOrder('${o.id}')">✏</button><button class="icon-btn" onclick="prefillUpdateOrder('${o.id}')">📝</button><button class="icon-btn" onclick="deleteOrder('${o.id}')">🗑</button></div></td>
+  </tr>`).join('') || '<tr><td colspan="11" class="empty">沒有符合條件的訂單</td></tr>';
+}
+
+function renderAdminUpdates(){
+  const tbody = document.getElementById('updates-admin-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = getVisibleUpdates().map(u => `<tr>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${u.createdAt}</td>
+    <td>${u.orderId}</td>
+    <td>${u.phase}</td>
+    <td style="max-width:240px">${safe(u.adminMessage)}</td>
+    <td style="max-width:220px">${safe(u.clientMessage)}</td>
+    <td style="max-width:220px">${safe(u.vendorMessage)}</td>
+    <td>${sourceLabel(u.createdBy)}</td>
+  </tr>`).join('') || '<tr><td colspan="7" class="empty">尚無更新資料</td></tr>';
+}
+
+function renderStock() {
+  const tbody = document.getElementById('stock-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = DB.stocks.map(s => {
+    const gap = Math.max(0, s.need - s.have);
+    const rate = Math.min(100, Math.round((s.have || 0) / Math.max(s.need || 1,1) * 100));
+    return `<tr><td>${s.name}</td><td>${s.order}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${s.need.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${s.have.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right;color:${gap?'var(--red)':'var(--green)'}">${gap.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${gap.toLocaleString()}</td><td>${progress(rate,100)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${s.arrive}</td><td>${pill(s.purStatus)}</td></tr>`;
+  }).join('');
+}
+
+function switchDeliveryTab(tab, el){ deliveryTab = tab; document.querySelectorAll('#page-delivery .tab').forEach(x=>x.classList.remove('active')); if(el) el.classList.add('active'); renderDelivery(); }
+function renderDelivery() {
+  const tbody = document.getElementById('delivery-tbody');
+  if (!tbody) return;
+  const tabMap = { all:()=>true, pending:o=>o.status==='待出貨'||o.status==='新單', shipped:o=>o.shipDate&&!o.received, received:o=>o.received&&!o.clientConfirm, done:o=>!!o.clientConfirm };
+  const rows = DB.orders.filter(tabMap[deliveryTab] || (()=>true));
+  tbody.innerHTML = rows.map(o => `<tr><td><span style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${o.id}</span></td><td>${getVendorName(o.vendor)}</td><td style="font-size:0.8rem">${o.product}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${o.qty.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${o.shipDate || '—'}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:${isUrgent(o.delivery)?'var(--yellow)':'var(--text)'}">${o.delivery}</td><td>${o.received ? `<span style="color:var(--green);font-size:.8rem">✓ ${o.received}</span>` : '<span style="color:var(--text3)">—</span>'}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${o.delivery}</td><td>${o.clientConfirm ? `<span style="color:var(--green);font-size:.8rem">✓ 已確認</span>` : `<button class="btn btn-outline btn-sm" onclick="confirmClient('${o.id}')">確認收貨</button>`}</td><td>${pill(o.status)}</td></tr>`).join('') || '<tr><td colspan="10" class="empty">此分類無資料</td></tr>';
+}
+function confirmClient(id) { const o = DB.orders.find(x => x.id === id); if (o) { o.clientConfirm = new Date().toISOString().slice(0,10); o.status = '已交貨'; renderDelivery(); renderDashboard(); renderClientDelivery(); renderClientOrders(); } }
+
+function renderAlliances() {
+  const grid = document.getElementById('alliance-grid'); if (!grid) return;
+  grid.innerHTML = DB.vendors.map(v => { const active = DB.orders.filter(o => o.vendor === v.id && o.status !== '已交貨').length; return `<div class="alliance-card"><div class="ac-header"><div><div class="ac-name">${v.name}</div><div class="ac-type">${v.type}</div></div>${pill(v.status)}</div><div class="ac-meta"><div class="ac-row"><span class="lbl">聯絡人</span><span class="val">${v.contact}</span></div><div class="ac-row"><span class="lbl">電話</span><span class="val">${v.phone}</span></div><div class="ac-row"><span class="lbl">月產能</span><span class="val" style="font-family:'JetBrains Mono',monospace">${v.capacity.toLocaleString()} pcs</span></div><div class="ac-row"><span class="lbl">進行中</span><span class="val" style="color:var(--blue)">${active} 單</span></div>${v.notes ? `<div class="ac-row"><span class="lbl">備註</span><span class="val" style="color:var(--text2);font-size:0.78rem">${v.notes}</span></div>` : ''}</div></div>`; }).join('');
+}
+
+function renderPlan() {
+  const tbody = document.getElementById('plan-tbody'); if (!tbody) return;
+  tbody.innerHTML = DB.plans.map(p => `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;color:var(--accent)">${p.id}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${p.order}</td><td>${getVendorName(p.vendor)}</td><td style="font-size:0.8rem">${p.product}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${p.planQty.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${p.done.toLocaleString()}</td><td>${progress(p.done,p.planQty)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${p.start}</td><td style="font-family:'JetBrains Mono',monospace;font-size:0.78rem">${p.end}</td><td style="font-size:0.8rem;color:var(--text2)">${p.notes || '—'}</td></tr>`).join('');
+}
+
+function getDateRange(offset=0){ const base = new Date('2026-04-01'); base.setMonth(base.getMonth()+offset); const start = new Date(base.getFullYear(), base.getMonth(), 1); const end = new Date(base.getFullYear(), base.getMonth()+1, 0); return {start,end}; }
+function buildGanttHTML(items, wrapId, labelId, offset=0){
+  const wrap = document.getElementById(wrapId), label = document.getElementById(labelId); if(!wrap) return;
+  const {start,end} = getDateRange(offset); const days = []; for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) days.push(new Date(d));
+  if(label) label.textContent = `${start.getFullYear()} / ${String(start.getMonth()+1).padStart(2,'0')}`;
+  const monthLabel = `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2,'0')}`;
+  const headerDays = days.map(d=>`<div class="gantt-day ${(d.getDay()===0||d.getDay()===6)?'weekend':''} ${d.toISOString().slice(0,10)==='2026-04-23'?'today':''}">${d.getDate()}</div>`).join('');
+  const body = items.map(it=>{
+    const s = new Date(it.start || start), e = new Date(it.end || s); const total = days.length; const left = Math.max(0, Math.floor((s - start)/86400000)); const span = Math.max(1, Math.floor((e - s)/86400000)+1); const width = span*28; const leftPx = left*28;
+    const cls = it.status==='已交貨'?'gantt-bar-green':it.status==='缺料'?'gantt-bar-red':(it.status==='待出貨'||it.status==='新單')?'gantt-bar-yellow':'gantt-bar-blue';
+    return `<div class="gantt-row"><div class="gantt-row-label"><div class="order-id">${it.id}</div><div class="order-product">${it.product}</div></div><div class="gantt-row-timeline">${days.map(()=>'<div class="gantt-day"></div>').join('')}<div class="gantt-bar-wrap ${cls}" style="left:${leftPx}px;width:${width}px"><div class="gantt-progress-fill" style="width:${it.pct||0}%;background:currentColor"></div><span style="position:relative;z-index:1">${it.status} ${it.pct||0}%</span></div></div></div>`;
+  }).join('') || `<div class="empty">${monthLabel} 無資料</div>`;
+  wrap.innerHTML = `<div class="gantt-header"><div class="gantt-label-col">項目</div><div class="gantt-dates"><div class="gantt-month"><div class="gantt-month-label">${monthLabel}</div><div class="gantt-days">${headerDays}</div></div></div></div><div class="gantt-body">${body}</div>`;
+}
+function renderGantt() {
+  let items = [];
+  if (ganttMode === 'orders') items = DB.orders.map(o => ({ id:o.id, product:o.product, start:o.shipDate || o.delivery, end:o.delivery, status:o.status, pct:Math.min(100, Math.round((o.stock||0)/Math.max(o.qty||1,1)*100)) }));
+  else items = DB.plans.map(p => ({ id:p.id, product:p.product, start:p.start, end:p.end, status:DB.orders.find(o => o.id===p.order)?.status || '生產中', pct:Math.min(100, Math.round((p.done||0)/Math.max(p.planQty||1,1)*100)) }));
+  buildGanttHTML(items, 'gantt-wrap', 'gantt-month-label', ganttOffset);
+}
+function renderVendorGantt() {
+  const vendorId = getCurrentUser().vendorId;
+  const vendorOrders = DB.orders.filter(o => o.vendor === vendorId);
+  const items = vendorOrders.map(o => ({ id:o.id, product:o.product, start:o.shipDate || o.delivery, end:o.delivery, status:o.status, pct:Math.min(100, Math.round((o.stock||0)/Math.max(o.qty||1,1)*100)) }));
+  buildGanttHTML(items, 'vendor-gantt-wrap', 'vgantt-month-label', vendorGanttOffset);
+}
+function ganttPrev(){ ganttOffset--; renderGantt(); }
+function ganttNext(){ ganttOffset++; renderGantt(); }
+function vendorGanttPrev(){ vendorGanttOffset--; renderVendorGantt(); }
+function vendorGanttNext(){ vendorGanttOffset++; renderVendorGantt(); }
+function setGanttMode(mode, el){ ganttMode=mode; document.querySelectorAll('#page-gantt .tab').forEach(x=>x.classList.remove('active')); if(el) el.classList.add('active'); renderGantt(); }
+
+function orderTimelineSteps(o){ return [
+  { label:'訂單確認', date:o.id.slice(-3), done:true },
+  { label:'生產中', date:o.status !== '新單' ? '進行中' : '', done:['生產中','待出貨','已交貨','缺料'].includes(o.status) },
+  { label:'出貨', date:o.shipDate || '', done:!!o.shipDate },
+  { label:'已收貨', date:o.received || '', done:!!o.received },
+  { label:'確認完成', date:o.clientConfirm || '', done:!!o.clientConfirm },
+]; }
+function renderClientOrders() {
+  const u = getCurrentUser();
+  const myOrders = getVisibleOrders();
+  document.querySelector('#page-client-orders .page-subtitle').textContent = '僅顯示此帳號可查看的訂單狀態與交貨資訊';
+  document.getElementById('c-active').textContent = myOrders.filter(o => o.status !== '已交貨').length;
+  document.getElementById('c-done').textContent = myOrders.filter(o => o.status === '已交貨').length;
+  document.getElementById('c-soon').textContent = myOrders.filter(o => isUrgent(o.delivery) && o.status !== '已交貨').length;
+  const list = document.getElementById('client-orders-list'); if (!list) return;
+  list.innerHTML = myOrders.map(o => {
+    const steps = orderTimelineSteps(o);
+    const stepsHTML = steps.map((s, i) => { const isActive = !s.done && (i === 0 || steps[i-1].done); return `${i > 0 ? `<div class="coc-connector${steps[i-1].done ? ' done' : ''}${isActive?' active':''}"></div>` : ''}<div class="coc-step"><div class="coc-step-dot${s.done?' done':''}${isActive?' active':''}">${s.done ? '✓' : i+1}</div><div class="coc-step-label">${s.label}</div><div class="coc-step-date">${s.date || '—'}</div></div>`; }).join('');
+    return `<div class="client-order-card"><div class="coc-header"><div><div class="coc-id">${o.id}</div><div class="coc-product">${o.product}</div></div><div style="text-align:right">${pill(o.status)}<div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:.78rem;color:${isUrgent(o.delivery)?'var(--yellow)':'var(--text2)'}">交期 ${o.delivery}</div></div></div><div class="coc-timeline">${stepsHTML}</div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px"><div><div class="vtc-meta-label">數量</div><div class="vtc-meta-value">${o.qty.toLocaleString()} pcs</div></div><div><div class="vtc-meta-label">最新可見更新</div><div class="vtc-meta-value" style="font-family:'Noto Sans TC',sans-serif">${safe((getVisibleUpdates().find(x=>x.orderId===o.id)||{}).clientMessage || '尚無更新')}</div></div><div><div class="vtc-meta-label">目前說明</div><div class="vtc-meta-value" style="font-family:'Noto Sans TC',sans-serif">${safe((getVisibleUpdates().find(x=>x.orderId===o.id)||{}).clientMessage || '系統將於有新進度時更新')}</div></div></div></div>`;
+  }).join('') || '<div class="empty">目前沒有可查看的訂單</div>';
+}
+function renderClientUpdates(){
+  const list = document.getElementById('client-updates-list'); if(!list) return;
+  const updates = getVisibleUpdates();
+  list.innerHTML = updates.map(u => `<div class="vendor-task-card"><div class="vtc-header"><div><div class="vtc-id">${u.orderId}</div><div class="vtc-product">${u.phase}</div></div><div class="vtc-deadline">${u.createdAt}</div></div><div style="font-size:0.88rem;line-height:1.7;color:var(--text)">${safe(messageForUser(u))}</div></div>`).join('') || '<div class="empty">目前沒有共享更新</div>';
+}
+function renderClientDelivery() {
+  const tbody = document.getElementById('client-delivery-tbody'); if (!tbody) return;
+  const rows = getVisibleOrders();
+  tbody.innerHTML = rows.map(o => `<tr><td>${o.id}</td><td>${o.product}</td><td style="font-family:'JetBrains Mono',monospace;text-align:right">${o.qty.toLocaleString()}</td><td style="font-family:'JetBrains Mono',monospace">${o.delivery}</td><td style="font-family:'JetBrains Mono',monospace">${o.received || '—'}</td><td>${o.clientConfirm ? '<span style="color:var(--green)">✓ 已確認</span>' : '<span style="color:var(--text3)">待確認</span>'}</td><td>${pill(o.status)}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">目前沒有資料</td></tr>';
+}
+
+function renderVendorTasks() {
+  const u = getCurrentUser();
+  const myOrders = getVisibleOrders().filter(o => o.status !== '已交貨');
+  const myPlans = getVisiblePlans();
+  document.querySelector('#page-vendor-tasks .page-subtitle').textContent = '僅顯示此帳號被分配的生產任務';
+  document.querySelector('#page-vendor-gantt .page-subtitle').textContent = '僅顯示此帳號可查看的排程時間軸';
+  document.getElementById('v-active').textContent = myOrders.length;
+  document.getElementById('v-due').textContent = myOrders.filter(o => isUrgent(o.delivery)).length;
+  const totalQty = myOrders.reduce((s, o) => s + (o.planQty || 0), 0);
+  document.getElementById('v-capacity').textContent = totalQty.toLocaleString();
+  const list = document.getElementById('vendor-tasks-list'); if (!list) return;
+  list.innerHTML = myOrders.map(o => {
+    const plan = myPlans.find(p => p.order === o.id); const pct = plan ? Math.min(100, Math.round((plan.done||0)/Math.max(plan.planQty||1,1)*100)) : 0; const cls = pct >= 90 ? 'fill-green' : pct >= 50 ? 'fill-yellow' : 'fill-red';
+    return `<div class="vendor-task-card"><div class="vtc-header"><div><div class="vtc-id">${o.id}</div><div class="vtc-product">${o.product}</div></div><div style="text-align:right">${pill(o.status)}<div class="vtc-deadline" style="margin-top:6px;color:${isUrgent(o.delivery)?'var(--yellow)':'var(--text2)'}">交期 ${o.delivery}</div></div></div><div class="vtc-meta"><div class="vtc-meta-item"><div class="vtc-meta-label">需求量</div><div class="vtc-meta-value">${o.qty.toLocaleString()} pcs</div></div><div class="vtc-meta-item"><div class="vtc-meta-label">計畫量</div><div class="vtc-meta-value">${(o.planQty||0).toLocaleString()} pcs</div></div><div class="vtc-meta-item"><div class="vtc-meta-label">我的進度</div><div>${progress(plan?.done || 0, plan?.planQty || o.planQty || 1)}</div></div><div class="vtc-meta-item"><div class="vtc-meta-label">最新可見更新</div><div class="vtc-meta-value" style="font-family:'Noto Sans TC',sans-serif">${safe((getVisibleUpdates().find(x=>x.orderId===o.id)||{}).vendorMessage || '尚無更新')}</div></div></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-outline btn-sm" onclick="prefillUpdateOrder('${o.id}')">📝 回報更新</button></div></div>`;
+  }).join('') || '<div class="empty">目前沒有分配給你的任務</div>';
+}
+function renderVendorUpdates(){
+  const list = document.getElementById('vendor-updates-list'); if(!list) return;
+  const updates = getVisibleUpdates();
+  list.innerHTML = updates.map(u => `<div class="vendor-task-card"><div class="vtc-header"><div><div class="vtc-id">${u.orderId}</div><div class="vtc-product">${u.phase}</div></div><div class="vtc-deadline">${u.createdAt}</div></div><div style="font-size:0.88rem;line-height:1.7;color:var(--text)">${safe(messageForUser(u))}</div><div style="margin-top:10px;font-size:0.72rem;color:var(--text3)">來源：共享更新</div></div>`).join('') || '<div class="empty">目前沒有可見更新</div>';
+}
+
+function populateVendorSelects() {
+  ['f-vendor','order-vendor-filter'].forEach(id => {
+    const sel = document.getElementById(id); if (!sel) return;
+    const cur = sel.value; const isFilter = id === 'order-vendor-filter';
+    sel.innerHTML = (isFilter ? '<option value="">全部廠商</option>' : '<option value="">-- 選擇廠商 --</option>') + DB.vendors.map(v => `<option value="${v.id}" ${v.id === cur ? 'selected' : ''}>${v.name}</option>`).join('');
+  });
+}
+function populateOrderSelect(onlyVisible=false) {
+  const sel = document.getElementById('s-order'); if (sel) sel.innerHTML = DB.orders.map(o => `<option value="${o.id}">${o.id} - ${o.client}</option>`).join('');
+  const us = document.getElementById('u-order');
+  if (us) {
+    const rows = onlyVisible ? getVisibleOrders() : DB.orders;
+    us.innerHTML = rows.map(o => `<option value="${o.id}">${o.id} - ${o.product}</option>`).join('');
+  }
+}
+function prefillUpdateOrder(orderId){
+  openUpdateModal();
+  setTimeout(()=>{ const sel=document.getElementById('u-order'); if(sel) sel.value=orderId; }, 10);
+}
+function openUpdateModal(){ populateOrderSelect(getCurrentUser().role !== 'admin'); openModal('modal-update'); }
+
+function saveOrder() {
+  const clientName = document.getElementById('f-client').value.trim();
+  let client = CLIENTS.find(c => c.name === clientName);
+  if (!client) { client = { id:'C' + String(CLIENTS.length+1).padStart(3,'0'), name:clientName }; CLIENTS.push(client); }
+  const o = {
+    id: document.getElementById('f-order-id').value || 'A-' + Date.now(),
+    clientId: client.id,
+    client: client.name,
+    product: document.getElementById('f-product').value,
+    qty: parseInt(document.getElementById('f-qty').value) || 0,
+    vendor: document.getElementById('f-vendor').value,
+    stock: parseInt(document.getElementById('f-stock').value) || 0,
+    planQty: parseInt(document.getElementById('f-plan-qty').value) || 0,
+    delivery: document.getElementById('f-delivery').value,
+    shipDate: document.getElementById('f-ship-date').value,
+    received: '', clientConfirm: '',
+    status: document.getElementById('f-status').value,
+    notes: document.getElementById('f-notes').value,
+  };
+  if (!o.client || !o.product) { alert('請填寫客戶名稱與產品'); return; }
+  const idx = DB.orders.findIndex(x => x.id === o.id);
+  if (idx >= 0) DB.orders[idx] = {...DB.orders[idx], ...o}; else DB.orders.unshift(o);
+  if (o.vendor) {
+    const existing = (DB.vendorAssignments || []).find(x => x.orderId === o.id && x.vendorId === o.vendor);
+    if (!existing) {
+      DB.vendorAssignments = DB.vendorAssignments || [];
+      DB.vendorAssignments.push({ id:'VA-' + String((DB.vendorAssignments.length||0)+1).padStart(3,'0'), orderId:o.id, vendorId:o.vendor, phase:'生產', isPrimary:true });
+    }
+  }
+  closeModal('modal-order');
+  renderOrders(); renderDashboard(); populateOrderSelect();
+}
+function editOrder(id) {
+  const o = DB.orders.find(x => x.id === id); if (!o) return; openModal('modal-order');
+  setTimeout(() => {
+    document.getElementById('f-order-id').value = o.id; document.getElementById('f-client').value = o.client; document.getElementById('f-product').value = o.product; document.getElementById('f-qty').value = o.qty; document.getElementById('f-vendor').value = o.vendor; document.getElementById('f-stock').value = o.stock; document.getElementById('f-plan-qty').value = o.planQty; document.getElementById('f-delivery').value = o.delivery; document.getElementById('f-ship-date').value = o.shipDate; document.getElementById('f-status').value = o.status; document.getElementById('f-notes').value = o.notes;
+  }, 50);
+}
+function deleteOrder(id) { if (!confirm('確定要刪除訂單 ' + id + '？')) return; DB.orders = DB.orders.filter(x => x.id !== id); DB.updates = DB.updates.filter(x => x.orderId !== id); renderOrders(); renderDashboard(); renderAdminUpdates(); }
+function saveVendor() {
+  const v = { id:'V' + String(DB.vendors.length + 1).padStart(3, '0'), name:document.getElementById('v-name').value, type:document.getElementById('v-type').value, contact:document.getElementById('v-contact').value, phone:document.getElementById('v-phone').value, capacity:parseInt(document.getElementById('v-capacity').value) || 0, status:document.getElementById('v-status').value, notes:document.getElementById('v-notes').value };
+  if (!v.name) { alert('請填寫廠商名稱'); return; }
+  DB.vendors.push(v); closeModal('modal-vendor'); renderAlliances(); populateVendorSelects();
+}
+function saveStock() {
+  const oid = document.getElementById('s-order').value;
+  const s = { name:document.getElementById('s-name').value, order:oid, need:parseInt(DB.orders.find(o => o.id === oid)?.qty) || 0, have:parseInt(document.getElementById('s-have').value) || 0, arrive:document.getElementById('s-arrive').value || '-', purStatus:document.getElementById('s-pur-status').value };
+  if (!s.name) { alert('請填寫料件名稱'); return; }
+  DB.stocks.push(s); closeModal('modal-stock'); renderStock();
+}
+function saveUpdate(){
+  const orderId = document.getElementById('u-order').value;
+  const order = DB.orders.find(o => o.id === orderId);
+  if(!order){ alert('請選擇訂單'); return; }
+  const u = getCurrentUser();
+  const row = {
+    id: 'UPD-' + String(DB.updates.length+1).padStart(3,'0'),
+    orderId,
+    phase: document.getElementById('u-phase').value,
+    createdAt: new Date().toLocaleString('zh-TW', { hour12:false }).replace(/\//g,'-'),
+    createdBy: u.role === 'admin' ? 'admin' : `vendor:${u.vendorId}`,
+    vendorId: u.role === 'vendor' ? u.vendorId : getPrimaryVendorId(order.id),
+    clientId: order.clientId,
+    visibleTo: ['admin', `client:${order.clientId}`, `vendor:${u.role === 'vendor' ? u.vendorId : getPrimaryVendorId(order.id)}`],
+    adminMessage: document.getElementById('u-admin-msg').value || document.getElementById('u-vendor-msg').value || document.getElementById('u-client-msg').value,
+    clientMessage: document.getElementById('u-client-msg').value || '進度已更新。',
+    vendorMessage: document.getElementById('u-vendor-msg').value || document.getElementById('u-admin-msg').value || '進度已更新。',
+  };
+  DB.updates.unshift(row);
+  closeModal('modal-update');
+  ['u-admin-msg','u-client-msg','u-vendor-msg'].forEach(id => document.getElementById(id).value='');
+  renderAdminUpdates(); renderClientUpdates(); renderVendorUpdates(); renderClientOrders(); renderVendorTasks();
+}
+
+function toggleSidebar() {
+  const sbs = ['sidebar-admin','sidebar-client','sidebar-vendor'];
+  const active = sbs.find(id => document.getElementById(id).style.display !== 'none') || 'sidebar-admin';
+  const sb = document.getElementById(active); const ov = document.getElementById('sidebar-overlay');
+  sb.classList.toggle('open'); ov.classList.toggle('open');
+}
+function refreshAll() { const d = new Date(); document.getElementById('dash-date').textContent = `最後更新：${d.toLocaleString('zh-TW')}`; if(currentPage==='dashboard') renderDashboard(); }
+
+
+window.APP_MODE = { firebaseLive:false, demo:true };
+window.ACTIVE_USER = null;
+window.firebaseAuth = null;
+window.firestoreDb = null;
+window.firebaseAppInstance = null;
+
+const FIREBASE_CONFIG_KEY = 'oemhub_firebase_config_v1';
+const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAtVdYnZn7_JgvhLPJGmL54Dx4ddKTh6bk",
+  authDomain: "oem-hub-be323.firebaseapp.com",
+  projectId: "oem-hub-be323",
+  storageBucket: "oem-hub-be323.firebasestorage.app",
+  messagingSenderId: "493574991656",
+  appId: "1:493574991656:web:c37f89f92addc11b0cea1d",
+  measurementId: "G-T1XB3XM5KN"
+};
+
+function getStoredFirebaseConfig(){
+  try {
+    const stored = JSON.parse(localStorage.getItem(FIREBASE_CONFIG_KEY) || 'null');
+    return stored || DEFAULT_FIREBASE_CONFIG;
+  } catch (e) { return DEFAULT_FIREBASE_CONFIG; }
+}
+function isValidFirebaseConfig(cfg){
+  return !!(cfg && cfg.apiKey && cfg.authDomain && cfg.projectId && cfg.appId);
+}
+function showAuthStatus(msg, isError=false){
+  const el = document.getElementById('auth-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.style.color = isError ? 'var(--red)' : 'var(--text2)';
+}
+function showAuthGate(){
+  document.getElementById('auth-gate')?.classList.add('open');
+}
+function hideAuthGate(){
+  document.getElementById('auth-gate')?.classList.remove('open');
+}
+function saveFirebaseConfig(){
+  const input = document.getElementById('firebase-config-input');
+  if (!input) return;
+  try {
+    const cfg = JSON.parse(input.value || '{}');
+    if (!isValidFirebaseConfig(cfg)) {
+      showAuthStatus('Firebase config 欄位不完整，至少需要 apiKey / authDomain / projectId / appId。', true);
+      return;
+    }
+    localStorage.setItem(FIREBASE_CONFIG_KEY, JSON.stringify(cfg));
+    showAuthStatus('Firebase config 已儲存，請直接登入。');
+    initFirebaseIfNeeded(true);
+  } catch (e) {
+    showAuthStatus('Firebase config JSON 格式錯誤。', true);
+  }
+}
+function clearFirebaseConfig(){
+  localStorage.removeItem(FIREBASE_CONFIG_KEY);
+  document.getElementById('firebase-config-input').value = JSON.stringify(DEFAULT_FIREBASE_CONFIG, null, 2);
+  showAuthStatus('已清除 Firebase config，目前可先用 Demo。');
+}
+function fillFirebaseConfigTextarea(){
+  const input = document.getElementById('firebase-config-input');
+  if (!input) return;
+  input.value = JSON.stringify(getStoredFirebaseConfig() || DEFAULT_FIREBASE_CONFIG, null, 2);
+}
+
+function initFirebaseIfNeeded(force=false){
+  const cfg = getStoredFirebaseConfig();
+  if (!isValidFirebaseConfig(cfg)) {
+    if (force) showAuthStatus('尚未設定 Firebase config。', true);
+    return false;
+  }
+  try {
+    if (!firebase.apps.length) {
+      window.firebaseAppInstance = firebase.initializeApp(cfg);
+    } else {
+      window.firebaseAppInstance = firebase.app();
+    }
+    window.firebaseAuth = firebase.auth();
+    window.firestoreDb = firebase.firestore();
+    return true;
+  } catch (e) {
+    showAuthStatus('Firebase 初始化失敗：' + (e?.message || e), true);
+    return false;
+  }
+}
+
+async function loginWithFirebase(){
+  if (!initFirebaseIfNeeded(true)) return;
+  const email = document.getElementById('login-email')?.value?.trim();
+  const password = document.getElementById('login-password')?.value || '';
+  if (!email || !password) {
+    showAuthStatus('請輸入 email 與密碼。', true);
+    return;
+  }
+  try {
+    showAuthStatus('登入中...');
+    await window.firebaseAuth.signInWithEmailAndPassword(email, password);
+  } catch (e) {
+    showAuthStatus('登入失敗：' + (e?.message || e), true);
+  }
+}
+
+async function logoutFirebase(){
+  if (window.APP_MODE?.firebaseLive && window.firebaseAuth) {
+    await window.firebaseAuth.signOut();
+  }
+  window.ACTIVE_USER = null;
+  window.APP_MODE = { firebaseLive:false, demo:true };
+  document.body.classList.remove('firebase-live');
+  renderAccountSwitcher();
+  showAuthGate();
+}
+
+
+function switchAuthView(view){
+  document.querySelectorAll('.auth-subtab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.auth-view').forEach(el => el.classList.remove('active'));
+  const tab = document.getElementById('auth-tab-' + view);
+  const panel = document.getElementById('auth-view-' + view);
+  if (tab) tab.classList.add('active');
+  if (panel) panel.classList.add('active');
+}
+
+async function registerRequestFirebase(){
+  try {
+    if (!window.firebaseAuth) throw new Error('請先貼入並初始化 Firebase config。');
+    const requestType = document.getElementById('req-type').value;
+    const companyName = document.getElementById('req-company').value.trim();
+    const name = document.getElementById('req-name').value.trim();
+    const email = document.getElementById('req-email').value.trim();
+    const password = document.getElementById('req-password').value;
+    const phone = document.getElementById('req-phone').value.trim();
+    const notes = document.getElementById('req-notes').value.trim();
+    if (!companyName || !name || !email || !password) throw new Error('請完整填寫公司、聯絡人、Email、密碼。');
+    showAuthStatus('送出申請中...');
+    const cred = await window.firebaseAuth.createUserWithEmailAndPassword(email, password);
+    const uid = cred.user.uid;
+    const payload = {
+      role: 'pending',
+      status: 'pending',
+      requestType,
+      companyName,
+      name,
+      email,
+      phone,
+      notes,
+      requestedAt: new Date().toISOString().slice(0,16).replace('T',' ')
+    };
+    await window.firestoreDb.collection('users').doc(uid).set(payload, { merge:true });
+    if (window.APP_MODE?.firebaseLive) {
+      DB.pendingUsers = DB.pendingUsers || [];
+      DB.pendingUsers.unshift({ id: uid, ...payload });
+    }
+    await window.firebaseAuth.signOut();
+    switchAuthView('login');
+    document.getElementById('req-company').value = '';
+    document.getElementById('req-name').value = '';
+    document.getElementById('req-email').value = '';
+    document.getElementById('req-password').value = '';
+    document.getElementById('req-phone').value = '';
+    document.getElementById('req-notes').value = '';
+    showAuthStatus('申請已送出，請等候管理者開通後再登入。');
+  } catch (e) {
+    showAuthStatus('送出申請失敗：' + (e?.message || e), true);
+  }
+}
+
+function nextEntityId(prefix, source){
+  const nums = (source || []).map(x => parseInt(String(x.id || '').replace(/\D/g,''), 10)).filter(Boolean);
+  const next = (nums.length ? Math.max(...nums) : 0) + 1;
+  return prefix + String(next).padStart(3, '0');
+}
+
+async function approvePendingUser(uid){
+  const req = (DB.pendingUsers || []).find(x => x.id === uid);
+  if (!req) return alert('找不到申請資料');
+  const type = req.requestType === 'vendor' ? 'vendor' : 'client';
+  try {
+    let patch = {
+      role: type,
+      status: 'active',
+      approvedAt: new Date().toISOString().slice(0,16).replace('T',' '),
+      approvedBy: getCurrentUser().email || getCurrentUser().name || 'admin'
+    };
+    if (type === 'client') {
+      const clientId = nextEntityId('C', CLIENTS);
+      patch.clientId = clientId;
+      const clientRow = { id: clientId, name: req.companyName || req.name || ('客戶 ' + clientId) };
+      CLIENTS.push(clientRow);
+      if (window.firestoreDb) await window.firestoreDb.collection('clients').doc(clientId).set(clientRow, { merge:true });
+    } else {
+      const vendorId = nextEntityId('V', DB.vendors || []);
+      patch.vendorId = vendorId;
+      const vendorRow = { id: vendorId, name: req.companyName || req.name || ('廠商 ' + vendorId), type:'待補資料', contact:req.name || '', phone:req.phone || '', capacity:0, status:'合作中', notes:req.notes || '' };
+      DB.vendors.push(vendorRow);
+      if (window.firestoreDb) await window.firestoreDb.collection('vendors').doc(vendorId).set(vendorRow, { merge:true });
+    }
+    if (window.firestoreDb) await window.firestoreDb.collection('users').doc(uid).set(patch, { merge:true });
+    Object.assign(req, patch);
+    renderApprovals();
+    renderAlliances();
+    populateVendorSelects();
+    alert('已核准並開通帳號');
+  } catch (e) {
+    alert('核准失敗：' + (e?.message || e));
+  }
+}
+
+async function rejectPendingUser(uid){
+  const req = (DB.pendingUsers || []).find(x => x.id === uid);
+  if (!req) return;
+  try {
+    if (window.firestoreDb) await window.firestoreDb.collection('users').doc(uid).set({ role:'rejected', status:'rejected', rejectedAt:new Date().toISOString().slice(0,16).replace('T',' ') }, { merge:true });
+    req.role = 'rejected';
+    req.status = 'rejected';
+    renderApprovals();
+  } catch (e) {
+    alert('拒絕失敗：' + (e?.message || e));
+  }
+}
+
+async function refreshApprovalRequests(){
+  if (!(window.APP_MODE?.firebaseLive) || !window.firestoreDb || getCurrentUser().role !== 'admin') {
+    renderApprovals();
+    return;
+  }
+  try {
+    const pending = await queryCollection('users', 'role', '==', 'pending').catch(()=>[]);
+    DB.pendingUsers = pending.map(x => ({...x, id:x.id, status:x.status || 'pending'}));
+    renderApprovals();
+  } catch (e) {
+    alert('載入申請失敗：' + (e?.message || e));
+  }
+}
+
+function startDemoMode(){
+  window.APP_MODE = { firebaseLive:false, demo:true };
+  window.ACTIVE_USER = null;
+  document.body.classList.remove('firebase-live');
+  hideAuthGate();
+  renderAccountSwitcher();
+  switchAccount('U_ADMIN');
+  showAuthStatus('目前使用 Demo 資料。');
+}
+
+function normalizeFirestoreDoc(doc){ return { id: doc.id, ...doc.data() }; }
+
+async function fetchCollection(name){
+  const snap = await window.firestoreDb.collection(name).get();
+  return snap.docs.map(normalizeFirestoreDoc);
+}
+
+async function queryCollection(name, field, op, value){
+  const snap = await window.firestoreDb.collection(name).where(field, op, value).get();
+  return snap.docs.map(normalizeFirestoreDoc);
+}
+async function queryCollectionArrayContains(name, field, value){
+  const snap = await window.firestoreDb.collection(name).where(field, 'array-contains', value).get();
+  return snap.docs.map(normalizeFirestoreDoc);
+}
+async function fetchDocsByIds(name, ids){
+  const unique = [...new Set((ids || []).filter(Boolean))];
+  if (!unique.length) return [];
+  const out = [];
+  for (let i = 0; i < unique.length; i += 10) {
+    const batch = unique.slice(i, i + 10);
+    const snap = await window.firestoreDb.collection(name).where(firebase.firestore.FieldPath.documentId(), 'in', batch).get();
+    out.push(...snap.docs.map(normalizeFirestoreDoc));
+  }
+  return out;
+}
+
+function syncClientsFromOrders(){
+  const map = new Map();
+  DB.orders.forEach(o => {
+    if (o.clientId) map.set(o.clientId, { id: o.clientId, name: o.client || getClientName(o.clientId) || ('客戶 ' + o.clientId) });
+  });
+  while (CLIENTS.length) CLIENTS.pop();
+  Array.from(map.values()).sort((a,b)=>(a.id||'').localeCompare(b.id||'')).forEach(c => CLIENTS.push(c));
+}
+
+async function loadFirestoreData(user){
+  if (!window.firestoreDb) return;
+  if (user.role === 'admin') {
+    const [vendors, clients, orders, stocks, plans, updates, vendor_assignments, pendingUsers] = await Promise.all([
+      fetchCollection('vendors'),
+      fetchCollection('clients').catch(()=>[]),
+      fetchCollection('orders'),
+      fetchCollection('stocks').catch(()=>[]),
+      fetchCollection('plans').catch(()=>[]),
+      fetchCollection('updates').catch(()=>[]),
+      fetchCollection('vendor_assignments').catch(()=>[]),
+      queryCollection('users', 'role', '==', 'pending').catch(()=>[])
+    ]);
+    DB.vendors = vendors;
+    DB.orders = orders;
+    DB.stocks = stocks;
+    DB.plans = plans;
+    DB.updates = updates.sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')));
+    DB.vendorAssignments = vendor_assignments;
+    DB.pendingUsers = pendingUsers.map(x => ({...x, id:x.id, status:x.status || 'pending'}));
+    if (clients.length) {
+      while (CLIENTS.length) CLIENTS.pop();
+      clients.forEach(c => CLIENTS.push(c));
+    } else {
+      syncClientsFromOrders();
+    }
+    return;
+  }
+
+  if (user.role === 'client') {
+    DB.orders = await queryCollection('orders', 'clientId', '==', user.clientId);
+    DB.updates = await queryCollectionArrayContains('updates', 'visibleTo', `client:${user.clientId}`).catch(()=>[]);
+    DB.vendors = [];
+    DB.stocks = [];
+    DB.plans = [];
+    DB.vendorAssignments = [];
+    DB.pendingUsers = [];
+    syncClientsFromOrders();
+    return;
+  }
+
+  if (user.role === 'vendor') {
+    DB.vendorAssignments = await queryCollection('vendor_assignments', 'vendorId', '==', user.vendorId).catch(()=>[]);
+    const orderIds = DB.vendorAssignments.map(x => x.orderId);
+    DB.orders = await fetchDocsByIds('orders', orderIds).catch(()=>[]);
+    DB.updates = await queryCollectionArrayContains('updates', 'visibleTo', `vendor:${user.vendorId}`).catch(()=>[]);
+    DB.plans = await queryCollection('plans', 'vendor', '==', user.vendorId).catch(()=>[]);
+    DB.vendors = [];
+    DB.stocks = [];
+    syncClientsFromOrders();
+    return;
+  }
+}
+
+async function loadFirebaseUserProfile(authUser){
+  const profileDoc = await window.firestoreDb.collection('users').doc(authUser.uid).get();
+  if (!profileDoc.exists) {
+    throw new Error('users/' + authUser.uid + ' 不存在，請先建立使用者角色資料。');
+  }
+  const data = profileDoc.data() || {};
+  return {
+    id: authUser.uid,
+    email: authUser.email || '',
+    name: data.name || authUser.email || '登入帳號',
+    role: data.role || 'client',
+    clientId: data.clientId || '',
+    vendorId: data.vendorId || ''
+  };
+}
+
+function applyAuthenticatedUser(user){
+  window.ACTIVE_USER = user;
+  currentUserId = user.id;
+  currentRole = user.role;
+  window.APP_MODE = { firebaseLive:true, demo:false };
+  document.body.classList.add('firebase-live');
+  hideAuthGate();
+  syncRoleUI();
+  renderAccountSwitcher();
+  if (user.role === 'admin') showPage('dashboard', document.querySelector('#sidebar-admin .sidebar-item'));
+  if (user.role === 'client') showPage('client-orders', document.querySelector('#sidebar-client .sidebar-item'));
+  if (user.role === 'vendor') showPage('vendor-tasks', document.querySelector('#sidebar-vendor .sidebar-item'));
+}
+
+async function handleFirebaseAuthState(authUser){
+  if (!authUser) {
+    window.ACTIVE_USER = null;
+    if (getStoredFirebaseConfig()) showAuthGate();
+    renderAccountSwitcher();
+    return;
+  }
+  try {
+    showAuthStatus('讀取帳號權限中...');
+    const user = await loadFirebaseUserProfile(authUser);
+    if (user.role === 'pending') {
+      showAuthGate();
+      showAuthStatus('你的帳號申請已送出，尚待管理者審核開通。');
+      await window.firebaseAuth.signOut();
+      return;
+    }
+    if (user.role === 'rejected') {
+      showAuthGate();
+      showAuthStatus('你的帳號申請目前未通過，若需重新申請請聯絡管理者。', true);
+      await window.firebaseAuth.signOut();
+      return;
+    }
+    await loadFirestoreData(user);
+    populateVendorSelects();
+    populateOrderSelect(user.role !== 'admin');
+    applyAuthenticatedUser(user);
+    if (user.role === 'admin') renderApprovals();
+    showAuthStatus('登入成功。');
+  } catch (e) {
+    showAuthStatus('載入帳號資料失敗：' + (e?.message || e), true);
+  }
+}
+
+async function saveOrderToFirestore(o){
+  await window.firestoreDb.collection('orders').doc(o.id).set(o, { merge:true });
+  if (o.clientId) {
+    await window.firestoreDb.collection('clients').doc(o.clientId).set({ id:o.clientId, name:o.client }, { merge:true });
+  }
+}
+async function saveVendorToFirestore(v){
+  await window.firestoreDb.collection('vendors').doc(v.id).set(v, { merge:true });
+}
+async function saveStockToFirestore(s){
+  const docId = (s.order || 'stock') + '_' + Date.now();
+  await window.firestoreDb.collection('stocks').doc(docId).set({ id:docId, ...s }, { merge:true });
+}
+async function saveUpdateToFirestore(row){
+  await window.firestoreDb.collection('updates').doc(row.id).set(row, { merge:true });
+}
+
+const _saveOrderLocal = saveOrder;
+saveOrder = async function(){
+  const clientName = document.getElementById('f-client').value.trim();
+  let client = CLIENTS.find(c => c.name === clientName);
+  if (!client) { client = { id:'C' + String(CLIENTS.length+1).padStart(3,'0'), name:clientName }; CLIENTS.push(client); }
+  const o = {
+    id: document.getElementById('f-order-id').value || 'A-' + Date.now(),
+    clientId: client.id,
+    client: client.name,
+    product: document.getElementById('f-product').value,
+    qty: parseInt(document.getElementById('f-qty').value) || 0,
+    vendor: document.getElementById('f-vendor').value,
+    stock: parseInt(document.getElementById('f-stock').value) || 0,
+    planQty: parseInt(document.getElementById('f-plan-qty').value) || 0,
+    delivery: document.getElementById('f-delivery').value,
+    shipDate: document.getElementById('f-ship-date').value,
+    received: '',
+    clientConfirm: '',
+    status: document.getElementById('f-status').value,
+    notes: document.getElementById('f-notes').value,
+  };
+  if (!o.client || !o.product) { alert('請填寫客戶名稱與產品'); return; }
+  const idx = DB.orders.findIndex(x => x.id === o.id);
+  if (idx >= 0) DB.orders[idx] = {...DB.orders[idx], ...o}; else DB.orders.unshift(o);
+  if (o.vendor) {
+    const existing = (DB.vendorAssignments || []).find(x => x.orderId === o.id && x.vendorId === o.vendor);
+    if (!existing) {
+      DB.vendorAssignments = DB.vendorAssignments || [];
+      DB.vendorAssignments.push({ id:'VA-' + String((DB.vendorAssignments.length||0)+1).padStart(3,'0'), orderId:o.id, vendorId:o.vendor, phase:'生產', isPrimary:true });
+    }
+  }
+  try {
+    if (window.APP_MODE?.firebaseLive) await saveOrderToFirestore(o);
+    closeModal('modal-order');
+    renderOrders(); renderDashboard(); populateOrderSelect();
+  } catch (e) {
+    alert('儲存訂單失敗：' + (e?.message || e));
+  }
+}
+
+const _saveVendorLocal = saveVendor;
+saveVendor = async function(){
+  const v = { id:'V' + String(DB.vendors.length + 1).padStart(3, '0'), name:document.getElementById('v-name').value, type:document.getElementById('v-type').value, contact:document.getElementById('v-contact').value, phone:document.getElementById('v-phone').value, capacity:parseInt(document.getElementById('v-capacity').value) || 0, status:document.getElementById('v-status').value, notes:document.getElementById('v-notes').value };
+  if (!v.name) { alert('請填寫廠商名稱'); return; }
+  DB.vendors.push(v);
+  try {
+    if (window.APP_MODE?.firebaseLive) await saveVendorToFirestore(v);
+    closeModal('modal-vendor'); renderAlliances(); populateVendorSelects();
+  } catch (e) {
+    alert('儲存廠商失敗：' + (e?.message || e));
+  }
+}
+
+const _saveStockLocal = saveStock;
+saveStock = async function(){
+  const oid = document.getElementById('s-order').value;
+  const s = { name:document.getElementById('s-name').value, order:oid, need:parseInt(DB.orders.find(o => o.id === oid)?.qty) || 0, have:parseInt(document.getElementById('s-have').value) || 0, arrive:document.getElementById('s-arrive').value || '-', purStatus:document.getElementById('s-pur-status').value };
+  if (!s.name) { alert('請填寫料件名稱'); return; }
+  DB.stocks.push(s);
+  try {
+    if (window.APP_MODE?.firebaseLive) await saveStockToFirestore(s);
+    closeModal('modal-stock'); renderStock();
+  } catch (e) {
+    alert('儲存庫存失敗：' + (e?.message || e));
+  }
+}
+
+const _saveUpdateLocal = saveUpdate;
+saveUpdate = async function(){
+  const orderId = document.getElementById('u-order').value;
+  const order = DB.orders.find(o => o.id === orderId);
+  if(!order){ alert('請選擇訂單'); return; }
+  const u = getCurrentUser();
+  const row = {
+    id: 'UPD-' + String(DB.updates.length+1).padStart(3,'0') + '-' + Date.now(),
+    orderId,
+    phase: document.getElementById('u-phase').value,
+    createdAt: new Date().toLocaleString('zh-TW', { hour12:false }).replace(/\//g,'-'),
+    createdBy: u.role === 'admin' ? 'admin' : `vendor:${u.vendorId}`,
+    vendorId: u.role === 'vendor' ? u.vendorId : getPrimaryVendorId(order.id),
+    clientId: order.clientId,
+    visibleTo: ['admin', `client:${order.clientId}`, `vendor:${u.role === 'vendor' ? u.vendorId : getPrimaryVendorId(order.id)}`],
+    adminMessage: document.getElementById('u-admin-msg').value || document.getElementById('u-vendor-msg').value || document.getElementById('u-client-msg').value,
+    clientMessage: document.getElementById('u-client-msg').value || '進度已更新。',
+    vendorMessage: document.getElementById('u-vendor-msg').value || document.getElementById('u-admin-msg').value || '進度已更新。',
+  };
+  DB.updates.unshift(row);
+  try {
+    if (window.APP_MODE?.firebaseLive) await saveUpdateToFirestore(row);
+    closeModal('modal-update');
+    ['u-admin-msg','u-client-msg','u-vendor-msg'].forEach(id => document.getElementById(id).value='');
+    renderAdminUpdates(); renderClientUpdates(); renderVendorUpdates(); renderClientOrders(); renderVendorTasks();
+  } catch (e) {
+    alert('儲存更新失敗：' + (e?.message || e));
+  }
+}
+
+function prepareStaticDateUI(){
+  const d = new Date();
+  const fmt = d.toLocaleDateString('zh-TW', { year:'numeric', month:'long', day:'numeric', weekday:'short' });
+  const el = document.getElementById('dash-date'); if (el) el.textContent = fmt;
+  const td = document.getElementById('today-date'); if (td) { td.textContent = fmt; td.style.display = 'inline'; }
+}
+
+function bootApp(){
+  prepareStaticDateUI();
+  populateVendorSelects();
+  populateOrderSelect();
+  fillFirebaseConfigTextarea();
+  renderAccountSwitcher();
+  syncRoleUI();
+  if (initFirebaseIfNeeded(false)) {
+    window.firebaseAuth.onAuthStateChanged(handleFirebaseAuthState);
+    showAuthStatus('已自動載入 Firebase 設定，請直接登入。');
+    showAuthGate();
+  } else {
+    startDemoMode();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  bootApp();
+});
+</script>
+
+</body>
+</html>
