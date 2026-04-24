@@ -1114,6 +1114,134 @@ textarea { resize: vertical; min-height: 70px; }
 .plan-help{font-size:.74rem;color:var(--text3);line-height:1.7;margin-top:10px}
 .data-tip{margin-bottom:18px;padding:12px 16px;border-radius:12px;background:var(--surface2);border:1px dashed var(--border2);color:var(--text2);font-size:.8rem}
 
+
+/* ── V26 VISUAL SYSTEM UPGRADE ── */
+:root {
+  --bg: #f4efe7;
+  --bg2: #ebe2d8;
+  --surface: rgba(255, 253, 248, 0.94);
+  --surface2: rgba(246, 240, 232, 0.94);
+  --surface3: #e8ded2;
+  --ink-strong: #2f2a26;
+  --line-soft: rgba(76, 63, 52, .10);
+  --line-strong: rgba(76, 63, 52, .18);
+  --focus-ring: rgba(127,139,134,.20);
+}
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:-1;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(127,139,134,.16), transparent 32%),
+    radial-gradient(circle at 92% 8%, rgba(167,154,179,.13), transparent 30%),
+    linear-gradient(120deg, rgba(255,255,255,.38), transparent 45%);
+}
+header{
+  height:64px;
+  box-shadow: 0 12px 30px rgba(95,82,72,.06);
+}
+.logo{ font-size:1.08rem; letter-spacing:2.5px; }
+.sidebar{
+  background: linear-gradient(180deg, rgba(255,253,249,.78), rgba(238,229,219,.92));
+  box-shadow: inset -1px 0 0 rgba(255,255,255,.45);
+}
+.sidebar-label{ color:rgba(63,58,54,.42); }
+.sidebar-item{
+  position:relative; min-height:40px; margin:2px 10px 2px 0;
+}
+.sidebar-item:hover{
+  background: rgba(255,253,249,.68);
+  transform: translateX(2px);
+}
+.sidebar-item.active{
+  background: linear-gradient(90deg, rgba(127,139,134,.18), rgba(255,253,249,.55));
+  color: var(--ink-strong);
+  box-shadow: 0 10px 22px rgba(95,82,72,.06);
+}
+.sidebar-item.active::after{
+  content:''; position:absolute; right:10px; top:50%; width:6px; height:6px;
+  border-radius:999px; background:var(--accent); transform:translateY(-50%);
+  box-shadow:0 0 0 5px rgba(127,139,134,.10);
+}
+.main{ padding:32px; }
+.page-title{ font-size:1.72rem; letter-spacing:-.65px; }
+.page-subtitle{ font-size:.86rem; line-height:1.65; }
+.btn{ border-radius:999px; }
+.btn-primary{
+  background: linear-gradient(135deg, #746b60, #7f8b86 52%, #96a59e);
+  box-shadow: 0 12px 28px rgba(127,139,134,.22);
+}
+.btn-outline{
+  background: rgba(255,253,249,.66);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+.table-wrap,.stat-card,.alliance-card,.vendor-task-card,.client-order-card,.approval-card{
+  box-shadow: 0 14px 38px rgba(95,82,72,.07);
+}
+tbody tr:hover{ background: rgba(246,240,232,.72); }
+.stat-card{
+  backdrop-filter: blur(16px);
+  min-height:122px;
+}
+.stat-card:hover{ box-shadow: 0 18px 40px rgba(95,82,72,.10); border-color:var(--line-strong); }
+.stat-value{ color:var(--ink-strong); }
+.pill{ box-shadow: inset 0 1px 0 rgba(255,255,255,.38); }
+
+/* PMC Control Tower Pro */
+.pmc-hero{
+  border:1px solid var(--border2); border-radius:24px; padding:22px;
+  background:
+    linear-gradient(135deg, rgba(255,253,249,.92), rgba(239,231,223,.76)),
+    radial-gradient(circle at 86% 12%, rgba(127,139,134,.18), transparent 30%);
+  box-shadow: 0 22px 58px rgba(95,82,72,.10);
+  margin-bottom:22px; position:relative; overflow:hidden;
+}
+.pmc-hero::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background-image: linear-gradient(rgba(127,139,134,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(127,139,134,.06) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(90deg, transparent, #000 20%, #000 70%, transparent);
+}
+.pmc-hero-content{ position:relative; display:grid; grid-template-columns:1.25fr .75fr; gap:18px; align-items:center; }
+.pmc-kicker{ font-family:'JetBrains Mono',monospace; font-size:.68rem; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:10px; }
+.pmc-headline{ font-size:1.35rem; font-weight:800; color:var(--ink-strong); letter-spacing:-.4px; }
+.pmc-desc{ margin-top:8px; color:var(--text2); line-height:1.8; font-size:.86rem; max-width:680px; }
+.pmc-command-strip{ display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
+.pmc-command{ padding:7px 12px; border:1px solid var(--border); background:rgba(255,253,249,.72); border-radius:999px; font-size:.72rem; color:var(--text2); }
+.pmc-hero-meter{ background:rgba(255,253,249,.72); border:1px solid var(--border); border-radius:18px; padding:16px; }
+.pmc-meter-top{ display:flex; justify-content:space-between; gap:10px; color:var(--text2); font-size:.72rem; margin-bottom:9px; }
+.pmc-meter-bar{ height:10px; border-radius:999px; background:var(--surface3); overflow:hidden; }
+.pmc-meter-fill{ height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg,var(--green),var(--yellow),var(--red)); transition:width .45s ease; }
+.pmc-meter-score{ font-family:'JetBrains Mono',monospace; font-size:1.6rem; font-weight:800; color:var(--ink-strong); margin-top:10px; }
+.pmc-layout{ display:grid; grid-template-columns:1.15fr .85fr; gap:18px; align-items:start; margin-bottom:24px; }
+.pmc-panel{ background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:18px; box-shadow:0 16px 38px rgba(95,82,72,.07); }
+.pmc-panel-title{ font-size:.88rem; font-weight:800; display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.pmc-board{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.pmc-lane{ border:1px solid var(--border); border-radius:16px; background:rgba(246,240,232,.64); padding:12px; min-height:150px; }
+.pmc-lane-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:.76rem; font-weight:800; color:var(--text); }
+.pmc-lane-count{ font-family:'JetBrains Mono',monospace; color:var(--text2); background:rgba(255,253,249,.7); padding:2px 8px; border-radius:999px; border:1px solid var(--border); }
+.pmc-ticket{ background:rgba(255,253,249,.78); border:1px solid var(--border); border-radius:14px; padding:10px; margin-bottom:8px; transition:transform .16s,border-color .16s; }
+.pmc-ticket:hover{ transform:translateY(-2px); border-color:var(--accent); }
+.pmc-ticket-id{ font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:.72rem; font-weight:800; }
+.pmc-ticket-main{ margin-top:4px; color:var(--text); font-size:.78rem; font-weight:700; line-height:1.45; }
+.pmc-ticket-sub{ color:var(--text3); font-size:.68rem; line-height:1.45; margin-top:4px; }
+.pmc-risk-grid{ display:grid; gap:8px; }
+.pmc-risk-row{ display:grid; grid-template-columns:88px 1fr 44px; gap:10px; align-items:center; padding:9px 10px; border:1px solid var(--border); border-radius:13px; background:rgba(255,253,249,.68); }
+.pmc-risk-name{ font-size:.74rem; color:var(--text2); font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pmc-risk-track{ height:8px; border-radius:999px; background:var(--surface3); overflow:hidden; }
+.pmc-risk-fill{ height:100%; border-radius:999px; transition:width .45s; }
+.pmc-risk-score{ font-family:'JetBrains Mono',monospace; font-size:.72rem; color:var(--text2); text-align:right; }
+.pmc-action-table tbody tr:first-child{ background:rgba(184,134,124,.055); }
+.pmc-row-critical{ box-shadow: inset 3px 0 0 var(--red); }
+.pmc-row-warning{ box-shadow: inset 3px 0 0 var(--yellow); }
+.pmc-row-normal{ box-shadow: inset 3px 0 0 var(--green); }
+@media (max-width:1100px){
+  .pmc-hero-content,.pmc-layout{ grid-template-columns:1fr; }
+  .pmc-board{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:768px){
+  .main{ padding:18px; }
+  .pmc-board{ grid-template-columns:1fr; }
+  .pmc-risk-row{ grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
@@ -1624,16 +1752,35 @@ textarea { resize: vertical; min-height: 70px; }
       <div class="page-header">
         <div>
           <div class="page-title">PMC 控制塔</div>
-          <div class="page-subtitle">集中看缺料、逾期、卡站、待回報工序</div>
+          <div class="page-subtitle">集中看缺料、逾期、卡站、待回報工序，先處理會影響交期的單。</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="btn btn-outline" onclick="renderPmcTower()">↻ 重新整理</button>
+          <button class="btn btn-outline" onclick="showAdminPage('orders')">查看訂單</button>
           <button class="btn btn-primary" onclick="showAdminPage('plan')">查看生產計畫</button>
         </div>
       </div>
 
-      <div class="role-banner admin-banner">
-        🧭 <strong>PMC 控制塔</strong> — 這裡只看真正需要你處理的單，不是全部列表。
+      <div class="pmc-hero">
+        <div class="pmc-hero-content">
+          <div>
+            <div class="pmc-kicker">PMC COMMAND CENTER</div>
+            <div class="pmc-headline">把所有訂單壓力整理成「今天該追誰、追什麼、先追哪一單」。</div>
+            <div class="pmc-desc">系統會依據工序逾期、BOM 缺料、卡站天數、廠商未回報，自動排序優先處理清單。客戶仍只會看到可公開狀態，不會看到廠商名稱。</div>
+            <div class="pmc-command-strip">
+              <span class="pmc-command">逾期優先</span>
+              <span class="pmc-command">缺料同步採購</span>
+              <span class="pmc-command">卡站追原因</span>
+              <span class="pmc-command">待回報催廠商</span>
+            </div>
+          </div>
+          <div class="pmc-hero-meter">
+            <div class="pmc-meter-top"><span>今日風險指數</span><span id="pmc-risk-label">NORMAL</span></div>
+            <div class="pmc-meter-bar"><div class="pmc-meter-fill" id="pmc-risk-meter"></div></div>
+            <div class="pmc-meter-score" id="pmc-risk-score">0</div>
+            <div class="stat-sub" id="pmc-risk-sub">依目前異常數自動計算</div>
+          </div>
+        </div>
       </div>
 
       <div class="stats-grid" style="margin-bottom:20px">
@@ -1643,13 +1790,24 @@ textarea { resize: vertical; min-height: 70px; }
         <div class="stat-card c-purple"><div class="stat-label">待回報工序</div><div class="stat-value" id="pmc-stat-report">0</div><div class="stat-sub" id="pmc-stat-report-sub">廠商尚未更新進度</div></div>
       </div>
 
+      <div class="pmc-layout">
+        <div class="pmc-panel">
+          <div class="pmc-panel-title"><span class="dot"></span> 工序異常看板</div>
+          <div class="pmc-board" id="pmc-board"></div>
+        </div>
+        <div class="pmc-panel">
+          <div class="pmc-panel-title"><span class="dot"></span> 廠商風險熱圖</div>
+          <div class="pmc-risk-grid" id="pmc-risk-grid"></div>
+        </div>
+      </div>
+
       <div class="section">
         <div class="section-header">
           <div class="section-title"><span class="dot"></span> 優先處理清單</div>
           <div style="font-size:.74rem;color:var(--text3)">依風險排序：逾期 → 缺料 → 卡站 → 待回報</div>
         </div>
         <div class="table-wrap">
-          <table>
+          <table class="pmc-action-table">
             <thead>
               <tr>
                 <th>優先級</th>
@@ -5716,11 +5874,15 @@ window.addEventListener('DOMContentLoaded', () => {
       const issue = getOrderIssueState(order, wf);
       return { order, wf, issue };
     });
+
     const overdueCount = items.reduce((s,x)=>s + x.wf.overdueRows.length, 0);
     const shortageCount = items.filter(x=>x.wf.shortage.shortageCount > 0 && !x.wf.allComplete).length;
     const stalledCount = items.reduce((s,x)=>s + x.issue.stalledRows.length, 0);
     const reportCount = items.reduce((s,x)=>s + x.issue.pendingReportRows.length, 0);
+    const riskScore = Math.min(100, overdueCount*28 + shortageCount*20 + stalledCount*14 + reportCount*8);
+    const riskLabel = riskScore >= 70 ? 'CRITICAL' : riskScore >= 40 ? 'WATCH' : riskScore > 0 ? 'ATTENTION' : 'NORMAL';
     const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = String(val); };
+
     setText('pmc-stat-overdue', overdueCount);
     setText('pmc-stat-shortage', shortageCount);
     setText('pmc-stat-stalled', stalledCount);
@@ -5729,36 +5891,85 @@ window.addEventListener('DOMContentLoaded', () => {
     setText('pmc-stat-shortage-sub', shortageCount ? '需追採購與備料' : '目前沒有缺料');
     setText('pmc-stat-stalled-sub', stalledCount ? '已有工序停在原站' : '目前沒有卡站');
     setText('pmc-stat-report-sub', reportCount ? '廠商進度尚未更新' : '目前回報正常');
+    setText('pmc-risk-score', riskScore);
+    setText('pmc-risk-label', riskLabel);
+    setText('pmc-risk-sub', riskScore ? '請依下方優先處理清單逐項關閉風險' : '目前流程健康，持續每日檢查');
+    const meter = document.getElementById('pmc-risk-meter');
+    if (meter) meter.style.width = riskScore + '%';
 
     const priorityBody = document.getElementById('pmc-priority-tbody');
     const orderBody = document.getElementById('pmc-orders-tbody');
+    const board = document.getElementById('pmc-board');
+    const riskGrid = document.getElementById('pmc-risk-grid');
     if (!priorityBody || !orderBody) return;
 
     const priorityRows = [];
+    const laneMap = { overdue:[], shortage:[], stalled:[], report:[] };
+    const vendorRisk = {};
+
     items.forEach(({order, wf, issue}) => {
       const row = wf.currentRow || wf.rows[0] || null;
       const clientName = getClientNameById(order.clientId || order.client);
-      const vendorName = getVendorNameById(row?.vendorId || order.currentVendorId || '');
+      const vendorId = row?.vendorId || order.currentVendorId || '';
+      const vendorName = getVendorNameById(vendorId);
       const productName = order.productName || order.product || order.productId || '—';
       const dueText = [order.deliveryDate || order.dueDate || '—', row?.startDate || '—', row?.endDate || '—'];
-      const pushItem = (rank, issueKey, issueLabel, action) => priorityRows.push({
-        rank, issueKey, issueLabel, action,
-        orderId: order.id, clientName, productName,
-        stepName: row?.stepName || order.currentStep || '未排工序', vendorName,
-        orderDue: dueText[0], stepDate: `${dueText[1]} → ${dueText[2]}`
-      });
+      const pushItem = (rank, issueKey, issueLabel, action) => {
+        const item = { rank, issueKey, issueLabel, action, orderId: order.id, clientName, productName, stepName: row?.stepName || order.currentStep || '未排工序', vendorName, vendorId, orderDue: dueText[0], stepDate: `${dueText[1]} → ${dueText[2]}` };
+        priorityRows.push(item);
+        if (laneMap[issueKey]) laneMap[issueKey].push(item);
+        const key = vendorId || '未指派';
+        if (!vendorRisk[key]) vendorRisk[key] = { name: vendorName || '未指派', score:0, count:0 };
+        vendorRisk[key].score += issueKey==='overdue' ? 32 : issueKey==='shortage' ? 24 : issueKey==='stalled' ? 16 : 10;
+        vendorRisk[key].count += 1;
+      };
       if (wf.overdueRows.length) pushItem(1, 'overdue', `逾期 ${wf.overdueRows.length} 道`, '先催目前工序與確認可完工日');
       if (wf.shortage.shortageCount > 0 && !wf.allComplete) pushItem(2, 'shortage', `缺料 ${wf.shortage.shortageCount} 項`, '先補料，再確認後站是否需延後');
       if (issue.stalledRows.length) pushItem(3, 'stalled', `卡站 ${issue.stalledRows.length} 道`, '確認是否未開工、待料或人力卡住');
       if (issue.pendingReportRows.length) pushItem(4, 'report', `待回報 ${issue.pendingReportRows.length} 道`, '請廠商更新今日產出與異常');
     });
+
+    const laneMeta = [
+      ['overdue','逾期','pill-red','交期已壓線，先催'],
+      ['shortage','缺料','pill-yellow','先補料再排程'],
+      ['stalled','卡站','pill-blue','查原因與責任站'],
+      ['report','待回報','pill-purple','請廠商更新進度']
+    ];
+    if (board) {
+      board.innerHTML = laneMeta.map(([key,title,pill,emptyText]) => {
+        const rows = laneMap[key].slice(0,4);
+        return `<div class="pmc-lane">
+          <div class="pmc-lane-head"><span>${title}</span><span class="pmc-lane-count">${laneMap[key].length}</span></div>
+          ${rows.length ? rows.map(x => `<div class="pmc-ticket">
+            <div class="pmc-ticket-id">${esc(x.orderId)}</div>
+            <div class="pmc-ticket-main">${esc(x.stepName)} · ${esc(x.vendorName)}</div>
+            <div class="pmc-ticket-sub">${esc(x.productName)}<br>${esc(x.issueLabel)}｜${esc(x.action)}</div>
+          </div>`).join('') : `<div class="pmc-ticket"><span class="pill pill-green">正常</span><div class="pmc-ticket-sub">${emptyText}</div></div>`}
+        </div>`;
+      }).join('');
+    }
+
+    if (riskGrid) {
+      const rows = Object.values(vendorRisk).sort((a,b)=>b.score-a.score).slice(0,8);
+      riskGrid.innerHTML = rows.length ? rows.map(v => {
+        const score = Math.min(100, v.score);
+        const fill = score >= 70 ? 'var(--red)' : score >= 40 ? 'var(--yellow)' : 'var(--green)';
+        return `<div class="pmc-risk-row">
+          <div class="pmc-risk-name">${esc(v.name)}</div>
+          <div class="pmc-risk-track"><div class="pmc-risk-fill" style="width:${score}%;background:${fill}"></div></div>
+          <div class="pmc-risk-score">${score}</div>
+        </div>`;
+      }).join('') : `<div class="empty" style="padding:30px 12px">目前沒有廠商異常風險。</div>`;
+    }
+
     priorityRows.sort((a,b)=>a.rank-b.rank || String(a.orderDue).localeCompare(String(b.orderDue)) || String(a.orderId).localeCompare(String(b.orderId)));
     if (!priorityRows.length) {
       priorityBody.innerHTML = `<tr><td colspan="8"><div class="empty">目前沒有需要立刻處理的異常，PMC 流程正常。</div></td></tr>`;
     } else {
       priorityBody.innerHTML = priorityRows.map((x, idx) => {
         const pill = x.issueKey==='overdue' ? 'pill-red' : x.issueKey==='shortage' ? 'pill-yellow' : x.issueKey==='stalled' ? 'pill-blue' : 'pill-purple';
-        return `<tr>
+        const rowClass = x.rank === 1 ? 'pmc-row-critical' : x.rank <= 3 ? 'pmc-row-warning' : 'pmc-row-normal';
+        return `<tr class="${rowClass}">
           <td><span class="pill ${pill}">P${idx+1}</span></td>
           <td><strong>${esc(x.orderId)}</strong></td>
           <td>${esc(x.clientName)}<div style="font-size:.7rem;color:var(--text3);margin-top:4px">${esc(x.productName)}</div></td>
@@ -5766,7 +5977,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <td>${esc(x.vendorName)}</td>
           <td><span class="pill ${pill}">${esc(x.issueLabel)}</span></td>
           <td>${esc(x.orderDue)}<div style="font-size:.7rem;color:var(--text3);margin-top:4px">${esc(x.stepDate)}</div></td>
-          <td>${esc(x.action)}</td>
+          <td><strong>${esc(x.action)}</strong></td>
         </tr>`;
       }).join('');
     }
@@ -5782,7 +5993,7 @@ window.addEventListener('DOMContentLoaded', () => {
       orderBody.innerHTML = watchList.map(({order, wf, issue}) => {
         const current = wf.currentRow || {};
         const primary = issue.primary;
-        const progress = N(order.progress || wf.progressPct);
+        const progress = Math.max(0, Math.min(100, N(order.progress || wf.progressPct)));
         const nextAction = primary?.key === 'overdue' ? '催目前工序 / 重抓完工日'
           : primary?.key === 'shortage' ? '確認缺料補期'
           : primary?.key === 'stalled' ? '追查卡站原因'
@@ -5806,6 +6017,7 @@ window.addEventListener('DOMContentLoaded', () => {
       }).join('');
     }
   }
+
 
   function renderWorkflowAlerts(){
     const bar = document.getElementById('dashboard-alert-bar');
@@ -14054,106 +14266,784 @@ function boot(){nav();page();pop();try{G.renderForecastClient()}catch(_){}}docum
 })();
 </script>
 
-<!-- v24 patch: 確保管理端「已退回」Forecast 一定有刪除按鈕 -->
+<!-- ═══════════════════════════════════════════════════════════════
+     v25 patch: Forecast 審核 — 完整刪除功能 + 介面優化
+     · 管理端：已退回 → 顯示「退回原因」+ 🗑 刪除按鈕
+     · 客戶端：已退回 → 顯示退回原因標籤 + 🗑 刪除按鈕
+     · 刪除同步至 Firestore，自動刷新所有相關視圖
+     ═══════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
+  'use strict';
   const G = window;
   const A = v => Array.isArray(v) ? v : [];
-  const S = v => String(v || '').trim();
+  const S = v => String(v ?? '').trim();
+  const E = v => S(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const now = () => new Date().toISOString();
 
-  // 完全重寫 admin 端補丁，直接從 DB 資料判斷而不依賴 DOM 文字
-  function patchAdminForecastV24(){
+  /* ── 共用：從 Firestore 或 in-memory DB 刪除 Forecast ── */
+  async function _deleteForecastFromDB(forecastId) {
+    G.DB.forecasts = A(G.DB?.forecasts).filter(x => String(x.id) !== String(forecastId));
+    try {
+      if (G.firestoreDb) {
+        await G.firestoreDb.collection('forecasts').doc(String(forecastId)).delete();
+      }
+    } catch(e) { console.warn('[v25] Firestore delete err', e); }
+  }
+
+  /* ── 共用：刷新所有關聯視圖 ── */
+  function _refreshAll() {
+    try { G.renderForecastAdmin?.(); } catch(_) {}
+    try { G.renderForecastClient?.(); } catch(_) {}
+    try { G.renderDashboard?.(); } catch(_) {}
+    try { G.updateAdminDataHint?.(); } catch(_) {}
+  }
+
+  /* ── 管理端：刪除已退回 Forecast ── */
+  G.v25DeleteForecastAdmin = async function(forecastId) {
+    const f = A(G.DB?.forecasts).find(x => String(x.id) === String(forecastId));
+    if (!f) return alert('找不到此 Forecast');
+    if (f.status !== 'rejected') return alert('只有「已退回」的 Forecast 才能刪除');
+    const reason = f.rejectReason ? `\n退回原因：${f.rejectReason}` : '';
+    if (!confirm(`確定永久刪除此 Forecast？\n\nID：${forecastId}${reason}\n\n⚠ 此操作無法還原`)) return;
+    await _deleteForecastFromDB(forecastId);
+    _refreshAll();
+  };
+
+  /* ── 客戶端：刪除已退回 Forecast ── */
+  G.v25DeleteForecastClient = async function(forecastId) {
+    const f = A(G.DB?.forecasts).find(x => String(x.id) === String(forecastId));
+    if (!f) return alert('找不到此 Forecast');
+    if (f.status !== 'rejected') return alert('只有「已退回」的 Forecast 才能刪除');
+    if (!confirm(`確定刪除此已退回的 Forecast（${forecastId}）？\n此操作無法還原。`)) return;
+    await _deleteForecastFromDB(forecastId);
+    _refreshAll();
+  };
+
+  /* ══════════════════════════════════════════════════════
+     完整重寫 renderForecastAdmin
+     ══════════════════════════════════════════════════════ */
+  function doRenderForecastAdmin() {
     const tbody = document.getElementById('forecast-admin-tbody');
     if (!tbody) return;
-    tbody.querySelectorAll('tr').forEach(tr => {
-      // 如果已經加過就跳過
-      if (tr.dataset.v24del) return;
-      const tds = tr.querySelectorAll('td');
-      if (!tds.length) return;
 
-      // 取得 Forecast ID（第一格，修剪空白）
-      const fcId = S(tds[0]?.textContent);
-      if (!fcId || fcId === '—') return;
+    const rows = A(G.DB?.forecasts)
+      .slice()
+      .sort((a, b) => S(b.createdAt).localeCompare(S(a.createdAt)));
 
-      // 從 DB 直接確認狀態
-      const f = A(G.DB?.forecasts).find(x => String(x.id) === fcId);
-      if (!f) return;
-      if (f.status !== 'rejected') return;
+    const safe = v => E(String(v ?? ''));
+    const pill = (status) => {
+      const map = {
+        submitted: ['pill-yellow', '審核中'],
+        approved:  ['pill-green',  '已轉正式單'],
+        rejected:  ['pill-red',    '已退回'],
+      };
+      const [cls, label] = map[status] || ['pill-gray', status || '—'];
+      return `<span class="pill ${cls}">${label}</span>`;
+    };
 
-      tr.dataset.v24del = '1';
+    const maskedClient = (f) => {
+      if (f.clientName) return safe(f.clientName);
+      if (typeof G.maskedClientLabel === 'function') return safe(G.maskedClientLabel(f.clientId));
+      return '—';
+    };
 
-      // 找操作欄（最後一格）
-      const actionTd = tds[tds.length - 1];
-      if (!actionTd) return;
-      if (actionTd.querySelector('.v24-del-btn')) return;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty">目前沒有 Forecast</td></tr>';
+      return;
+    }
 
-      // 建立刪除按鈕
-      const delBtn = document.createElement('button');
-      delBtn.className = 'btn btn-outline btn-sm v24-del-btn';
-      delBtn.style.cssText = 'color:var(--red);border-color:rgba(184,134,124,.5);margin-left:6px;white-space:nowrap';
-      delBtn.textContent = '🗑 刪除';
-      delBtn.title = '刪除此已退回的 Forecast（無法還原）';
-      delBtn.onclick = () => G.deleteForecastAdminV24(fcId);
+    tbody.innerHTML = rows.map(f => {
+      const st = f.status || 'submitted';
+      const qty = Number(f.qty || 0).toLocaleString();
+      const reasonTag = (st === 'rejected' && f.rejectReason)
+        ? `<div style="margin-top:4px;font-size:.72rem;color:var(--red);opacity:.85">💬 ${E(f.rejectReason)}</div>`
+        : '';
 
-      // 確保有 .table-actions 包裝
-      let wrap = actionTd.querySelector('.table-actions');
-      if (!wrap) {
-        wrap = document.createElement('div');
-        wrap.className = 'table-actions';
-        wrap.style.display = 'flex';
-        wrap.style.alignItems = 'center';
-        wrap.style.gap = '4px';
-        wrap.innerHTML = actionTd.innerHTML;
-        actionTd.innerHTML = '';
-        actionTd.appendChild(wrap);
+      let actionHTML = '';
+      if (st === 'submitted') {
+        actionHTML = `
+          <button class="btn btn-outline btn-sm" style="white-space:nowrap"
+            onclick="(typeof G.approveForecastToOrder==='function'?G:window).approveForecastToOrder('${E(f.id)}')">
+            ✅ 轉正式單
+          </button>
+          <button class="btn btn-outline btn-sm" style="white-space:nowrap"
+            onclick="(window.openRejectForecastModal||window.rejectForecast)('${E(f.id)}')">
+            ↩ 退回
+          </button>`;
+      } else if (st === 'rejected') {
+        actionHTML = `
+          <button class="btn btn-outline btn-sm v25-del-btn" style="color:var(--red);border-color:rgba(184,134,124,.5);white-space:nowrap"
+            onclick="window.v25DeleteForecastAdmin('${E(f.id)}')" title="永久刪除此已退回 Forecast">
+            🗑 刪除
+          </button>`;
+      } else {
+        // approved
+        const orderLink = f.orderId
+          ? `<span style="color:var(--blue);font-size:.76rem;font-family:'JetBrains Mono',monospace">訂單 ${E(f.orderId)}</span>`
+          : `<span style="color:var(--text3);font-size:.76rem">已轉單</span>`;
+        actionHTML = orderLink;
       }
-      wrap.appendChild(delBtn);
+
+      return `<tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${E(f.id)}</td>
+        <td>${maskedClient(f)}</td>
+        <td>${safe(f.product)}</td>
+        <td style="font-family:'JetBrains Mono',monospace;text-align:right">${qty}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${f.targetDate || '—'}</td>
+        <td>${pill(st)}${reasonTag}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.76rem">${f.createdAt || '—'}</td>
+        <td style="font-size:.78rem">${safe(f.createdByName || '')}</td>
+        <td><div class="table-actions" style="display:flex;align-items:center;gap:6px;flex-wrap:nowrap">${actionHTML}</div></td>
+      </tr>`;
+    }).join('');
+
+    /* 同步更新計數卡 */
+    const pending  = rows.filter(f => (f.status || 'submitted') === 'submitted').length;
+    const approved = rows.filter(f => f.status === 'approved').length;
+    const pelm = document.getElementById('forecast-pending-count');
+    const aelm = document.getElementById('forecast-approved-count');
+    if (pelm) pelm.textContent = pending;
+    if (aelm) aelm.textContent = approved;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     完整重寫 renderForecastClient — 退回也顯示刪除按鈕
+     ══════════════════════════════════════════════════════ */
+  function doRenderForecastClient() {
+    const tbody = document.getElementById('forecast-client-tbody');
+    if (!tbody) return;
+
+    const u = typeof G.getCurrentUser === 'function' ? G.getCurrentUser() : (G.ACTIVE_USER || {});
+    const safe = v => E(String(v ?? ''));
+    const pill = (status) => {
+      const map = {
+        submitted: ['pill-yellow', '審核中'],
+        approved:  ['pill-green',  '已轉正式單'],
+        rejected:  ['pill-red',    '已退回'],
+      };
+      const [cls, label] = map[status] || ['pill-gray', status || '—'];
+      return `<span class="pill ${cls}">${label}</span>`;
+    };
+
+    const rows = A(G.DB?.forecasts)
+      .filter(f => u.role === 'admin' || String(f.clientId) === String(u.clientId))
+      .sort((a, b) => S(b.createdAt).localeCompare(S(a.createdAt)));
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">目前沒有 Forecast</td></tr>';
+      if (typeof G._renderForecastCalendar === 'function') G._renderForecastCalendar(rows);
+      else if (typeof G.renderForecastCalendar === 'function') G.renderForecastCalendar(rows);
+      return;
+    }
+
+    tbody.innerHTML = rows.map(f => {
+      const st = f.status || 'submitted';
+      const qty = Number(f.qty || 0).toLocaleString();
+      const orderLink = f.orderId
+        ? `<div style="margin-top:3px"><a style="color:var(--blue);font-size:.75rem;cursor:pointer"
+            onclick="window.showPage&&showPage('client-orders',null)">訂單 ${E(f.orderId)}</a></div>`
+        : '';
+      const reasonTag = (st === 'rejected' && f.rejectReason)
+        ? `<div style="margin-top:4px;font-size:.72rem;color:var(--red);opacity:.85">💬 ${E(f.rejectReason)}</div>`
+        : '';
+
+      let actionHTML = '';
+      if (st === 'submitted') {
+        actionHTML = `<button class="icon-btn" style="color:var(--red)" title="刪除（僅限審核中）"
+          onclick="window.deleteForecast?.('${E(f.id)}')">🗑</button>`;
+      } else if (st === 'rejected') {
+        actionHTML = `<button class="btn btn-outline btn-sm v25-del-btn" style="color:var(--red);border-color:rgba(184,134,124,.5);white-space:nowrap"
+          onclick="window.v25DeleteForecastClient('${E(f.id)}')" title="刪除此已退回 Forecast">
+          🗑 刪除
+        </button>`;
+      }
+
+      return `<tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${E(f.id)}</td>
+        <td>${safe(f.product)}</td>
+        <td style="font-family:'JetBrains Mono',monospace;text-align:right">${qty}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${f.targetDate || '—'}</td>
+        <td>${pill(st)}${orderLink}${reasonTag}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.76rem">${f.createdAt || '—'}</td>
+        <td style="font-size:.78rem">${safe(f.notes || '')}</td>
+        <td><div class="actions">${actionHTML}</div></td>
+      </tr>`;
+    }).join('');
+
+    try {
+      if (typeof G._renderForecastCalendar === 'function') G._renderForecastCalendar(rows);
+      else if (typeof G.renderForecastCalendar === 'function') G.renderForecastCalendar(rows);
+    } catch(_) {}
+  }
+
+  /* ══════════════════════════════════════════════════════
+     安全安裝：等所有前置函式就緒後才覆寫
+     ══════════════════════════════════════════════════════ */
+  let _installed = false;
+  function installV25() {
+    if (_installed) return;
+    // 確保 DB 存在
+    if (!G.DB) return;
+    _installed = true;
+
+    // 保存各層原始版本（供 Gantt / 其他模組繼續使用）
+    G._v25_origRFA = G.renderForecastAdmin;
+    G._v25_origRFC = G.renderForecastClient;
+
+    G.renderForecastAdmin = function() {
+      doRenderForecastAdmin();
+      // 若有其他後處理補丁（如 v21 月曆）也一起觸發
+      setTimeout(() => {
+        try { G._v25_origRFA?.apply(this, []); } catch(_) {}
+      }, 0);
+    };
+
+    G.renderForecastClient = function() {
+      doRenderForecastClient();
+    };
+
+    // 立即渲染一次
+    try { G.renderForecastAdmin(); } catch(_) {}
+    try { G.renderForecastClient(); } catch(_) {}
+  }
+
+  // 多重觸發確保安裝成功
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(installV25, 400);
+    setTimeout(installV25, 1200);
+    setTimeout(installV25, 2500);
+  });
+  setTimeout(installV25, 600);
+  setTimeout(installV25, 1500);
+  setTimeout(installV25, 3000);
+
+})();
+</script>
+
+
+<!-- v27 targeted patch: vendor dropdown linkage + forecast admin delete + remove duplicated vendor alliance delete -->
+<script>
+(function(){
+  if (window.__v27VendorForecastAlliancePatch) return;
+  window.__v27VendorForecastAlliancePatch = true;
+
+  const G = window;
+  const A = v => Array.isArray(v) ? v : [];
+  const S = v => String(v ?? '').trim();
+  const E = v => S(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const N = v => Number(v) || 0;
+
+  function vendorRows(){
+    return A(G.DB?.vendors).filter(v => S(v.id));
+  }
+  function vendorName(id){
+    if (typeof G.getVendorName === 'function') return G.getVendorName(id);
+    return vendorRows().find(v => S(v.id) === S(id))?.name || id || '—';
+  }
+  function getPrimaryAssignment(orderId){
+    const rows = A(G.DB?.vendorAssignments).filter(a => S(a.orderId) === S(orderId));
+    return rows.find(a => a.isPrimary) || rows[0] || null;
+  }
+  async function persistOrder(order){
+    try {
+      if (typeof G.persistOrder === 'function') return await G.persistOrder(order);
+      if (typeof G.saveOrderToFirestore === 'function') return await G.saveOrderToFirestore(order);
+      if (G.firestoreDb?.collection && order?.id) {
+        return await G.firestoreDb.collection('orders').doc(S(order.id)).set(JSON.parse(JSON.stringify(order)), { merge:true });
+      }
+    } catch(e) { console.warn('[v27] persistOrder failed', e); }
+  }
+  async function persistAssignment(asg){
+    try {
+      if (typeof G.persistAssignment === 'function') return await G.persistAssignment(asg);
+      if (G.firestoreDb?.collection && asg?.id) {
+        return await G.firestoreDb.collection('vendor_assignments').doc(S(asg.id)).set(JSON.parse(JSON.stringify(asg)), { merge:true });
+      }
+    } catch(e) { console.warn('[v27] persistAssignment failed', e); }
+  }
+  async function deleteAssignment(asg){
+    try {
+      if (G.firestoreDb?.collection && asg?.id) await G.firestoreDb.collection('vendor_assignments').doc(S(asg.id)).delete();
+    } catch(e) { console.warn('[v27] deleteAssignment failed', e); }
+  }
+  function refresh(){
+    try { G.populateVendorSelects?.(); } catch(_) {}
+    try { G.renderOrders?.(); } catch(_) {}
+    try { G.renderDashboard?.(); } catch(_) {}
+    try { G.renderAlliances?.(); } catch(_) {}
+    try { G.renderDelivery?.(); } catch(_) {}
+    try { G.renderPmcTower?.(); } catch(_) {}
+    try { G.refreshSidebarBadges?.(); } catch(_) {}
+  }
+
+  G.v27ChangeOrderVendor = async function(orderId, vendorId){
+    const order = A(G.DB?.orders).find(o => S(o.id) === S(orderId));
+    if (!order) return alert('找不到此訂單');
+    const oldVendor = S(order.vendor);
+    order.vendor = S(vendorId);
+    order.vendorId = S(vendorId);
+    order.modifiedAt = (typeof G.nowText === 'function') ? G.nowText() : new Date().toISOString().slice(0,16).replace('T',' ');
+    const actor = (typeof G.actorInfo === 'function') ? G.actorInfo() : {};
+    order.modifiedBy = actor.name || G.ACTIVE_USER?.name || G.ACTIVE_USER?.email || 'admin';
+
+    G.DB.vendorAssignments = A(G.DB?.vendorAssignments);
+    let asg = getPrimaryAssignment(orderId);
+    if (S(vendorId)) {
+      if (!asg) {
+        asg = {
+          id: 'VA-' + Date.now(),
+          orderId: S(orderId),
+          vendorId: S(vendorId),
+          phase: '生產',
+          qty: N(order.planQty || order.qty),
+          isPrimary: true,
+          status: '待確認',
+          createdAt: order.modifiedAt,
+          createdBy: order.modifiedBy
+        };
+        G.DB.vendorAssignments.unshift(asg);
+      } else {
+        asg.vendorId = S(vendorId);
+        asg.isPrimary = true;
+        asg.qty = N(asg.qty || order.planQty || order.qty);
+        asg.modifiedAt = order.modifiedAt;
+        asg.modifiedBy = order.modifiedBy;
+        if (oldVendor && oldVendor !== S(vendorId)) {
+          asg.receivedAt = '';
+          asg.promisedDate = '';
+          asg.status = '待確認';
+        }
+      }
+      await persistAssignment(asg);
+    } else if (asg) {
+      G.DB.vendorAssignments = G.DB.vendorAssignments.filter(x => S(x.id) !== S(asg.id));
+      await deleteAssignment(asg);
+    }
+
+    await persistOrder(order);
+    refresh();
+  };
+
+  function vendorSelectHTML(order){
+    const current = S(order.vendor || order.vendorId || getPrimaryAssignment(order.id)?.vendorId || '');
+    const opts = ['<option value="">未指定廠商</option>'].concat(vendorRows().map(v => {
+      const label = `${E(v.name || v.id)}（${E(v.id)}）`;
+      return `<option value="${E(v.id)}" ${S(v.id) === current ? 'selected' : ''}>${label}</option>`;
+    })).join('');
+    const asg = getPrimaryAssignment(order.id);
+    const sub = asg
+      ? `<div style="font-size:.68rem;color:var(--text3);line-height:1.45;margin-top:4px">
+           ${E(asg.phase || '生產')} / ${N(asg.qty || order.planQty || order.qty).toLocaleString()} pcs
+           · ${asg.receivedAt ? '已確認' : '待確認'}
+         </div>`
+      : `<div style="font-size:.68rem;color:var(--text3);line-height:1.45;margin-top:4px">選擇後會同步建立 / 更新外發分派</div>`;
+    return `<div class="v27-vendor-cell">
+      <select class="v27-vendor-select" data-order-id="${E(order.id)}" onchange="window.v27ChangeOrderVendor('${E(order.id)}', this.value)" style="min-width:172px;padding:7px 30px 7px 10px;font-size:.76rem">
+        ${opts}
+      </select>${sub}
+    </div>`;
+  }
+
+  function patchOrderVendorCells(){
+    const tbody = document.getElementById('orders-tbody');
+    if (!tbody || !G.DB?.orders) return;
+    [...tbody.querySelectorAll('tr')].forEach(tr => {
+      const first = S(tr.children?.[0]?.innerText).split(/\s+/)[0];
+      const order = A(G.DB.orders).find(o => S(o.id) === first);
+      if (!order || !tr.children?.[4]) return;
+      if (tr.children[4].querySelector('.v27-vendor-select')) return;
+      tr.children[4].innerHTML = vendorSelectHTML(order);
     });
   }
 
-  // 客戶端刪除已退回 Forecast
-  G.deleteRejectedForecastClient = async function(forecastId){
-    const f = A(G.DB?.forecasts).find(x => String(x.id) === String(forecastId));
+  const oldRenderOrders = G.renderOrders;
+  G.renderOrders = function(){
+    const out = typeof oldRenderOrders === 'function' ? oldRenderOrders.apply(this, arguments) : undefined;
+    setTimeout(patchOrderVendorCells, 0);
+    return out;
+  };
+
+  const oldPopulateVendorSelects = G.populateVendorSelects;
+  G.populateVendorSelects = function(){
+    if (typeof oldPopulateVendorSelects === 'function') oldPopulateVendorSelects.apply(this, arguments);
+    ['f-vendor','order-vendor-filter'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      const cur = sel.value;
+      const first = id === 'order-vendor-filter' ? '<option value="">全部廠商</option>' : '<option value="">-- 選擇廠商 --</option>';
+      sel.innerHTML = first + vendorRows().map(v => `<option value="${E(v.id)}" ${S(v.id) === S(cur) ? 'selected' : ''}>${E(v.name || v.id)}（${E(v.id)}）</option>`).join('');
+    });
+  };
+
+  async function deleteForecastAnyStatus(forecastId){
+    const f = A(G.DB?.forecasts).find(x => S(x.id) === S(forecastId));
     if (!f) return alert('找不到此 Forecast');
-    if (f.status !== 'rejected') return alert('只有「已退回」的 Forecast 可以刪除');
-    if (!confirm(`確定刪除已退回的 Forecast ${forecastId}？\n此操作無法還原。`)) return;
-    G.DB.forecasts = A(G.DB.forecasts).filter(x => String(x.id) !== String(forecastId));
+    const statusText = ({submitted:'審核中', approved:'已轉正式單', rejected:'已退回'})[f.status || 'submitted'] || (f.status || '—');
+    if (!confirm(`確定刪除 Forecast ${forecastId}？\n狀態：${statusText}\n\n此操作無法還原。`)) return;
+    G.DB.forecasts = A(G.DB.forecasts).filter(x => S(x.id) !== S(forecastId));
     try {
-      if (G.firestoreDb) await G.firestoreDb.collection('forecasts').doc(forecastId).delete();
-    } catch(e) { console.warn('[v24] deleteRejectedForecastClient err', e); }
-    try { G.renderForecastClient?.(); } catch(_) {}
-    try { G.renderForecastAdmin?.(); } catch(_) {}
-  };
-
-  // 管理端刪除已退回 Forecast
-  G.deleteForecastAdminV24 = async function(forecastId){
-    const f = A(G.DB?.forecasts).find(x => String(x.id) === String(forecastId));
-    if (!f) return alert('找不到此 Forecast');
-    if (f.status !== 'rejected') return alert('只有「已退回」的 Forecast 可以刪除');
-    if (!confirm(`確定刪除已退回的 Forecast ${forecastId}？\n此操作無法還原。`)) return;
-    G.DB.forecasts = A(G.DB.forecasts).filter(x => String(x.id) !== String(forecastId));
-    try {
-      if (G.firestoreDb) await G.firestoreDb.collection('forecasts').doc(forecastId).delete();
-    } catch(e) { console.warn('[v24] deleteForecastAdmin err', e); }
+      if (G.firestoreDb?.collection) await G.firestoreDb.collection('forecasts').doc(S(forecastId)).delete();
+    } catch(e) { console.warn('[v27] delete forecast failed', e); }
     try { G.renderForecastAdmin?.(); } catch(_) {}
     try { G.renderForecastClient?.(); } catch(_) {}
+    try { G.renderDashboard?.(); } catch(_) {}
+    try { G.refreshSidebarBadges?.(); } catch(_) {}
+  }
+  G.v27DeleteForecastAdmin = deleteForecastAnyStatus;
+
+  function renderForecastAdminV27(){
+    const tbody = document.getElementById('forecast-admin-tbody');
+    if (!tbody) return;
+    const rows = A(G.DB?.forecasts).slice().sort((a,b)=>S(b.createdAt).localeCompare(S(a.createdAt)));
+    const statusPill = (status) => {
+      const map = { submitted:['pill-yellow','審核中'], approved:['pill-green','已轉正式單'], rejected:['pill-red','已退回'] };
+      const [cls,label] = map[status || 'submitted'] || ['pill-gray', status || '—'];
+      return `<span class="pill ${cls}">${E(label)}</span>`;
+    };
+    const clientLabel = f => E(f.clientName || (typeof G.maskedClientLabel === 'function' ? G.maskedClientLabel(f.clientId) : '') || '—');
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty">目前沒有 Forecast</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(f => {
+      const st = f.status || 'submitted';
+      const rejectReason = st === 'rejected' && f.rejectReason
+        ? `<div style="margin-top:4px;font-size:.72rem;color:var(--red);opacity:.85">💬 ${E(f.rejectReason)}</div>` : '';
+      const processBtns = st === 'submitted' ? `
+        <button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="window.approveForecastToOrder?.('${E(f.id)}')">✅ 轉正式單</button>
+        <button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="(window.openRejectForecastModal||window.rejectForecast)?.('${E(f.id)}')">↩ 退回</button>
+      ` : (f.orderId ? `<span style="color:var(--blue);font-size:.76rem;font-family:'JetBrains Mono',monospace">訂單 ${E(f.orderId)}</span>` : `<span style="color:var(--text3);font-size:.76rem">已處理</span>`);
+      return `<tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${E(f.id)}</td>
+        <td>${clientLabel(f)}</td>
+        <td>${E(f.product || f.productName || '')}</td>
+        <td style="font-family:'JetBrains Mono',monospace;text-align:right">${N(f.qty).toLocaleString()}</td>
+        <td style="font-family:'JetBrains Mono',monospace">${E(f.targetDate || '—')}</td>
+        <td>${statusPill(st)}${rejectReason}</td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:.76rem">${E(f.createdAt || '—')}</td>
+        <td style="font-size:.78rem">${E(f.createdByName || '')}</td>
+        <td><div class="table-actions" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          ${processBtns}
+          <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:rgba(184,134,124,.55);white-space:nowrap" onclick="window.v27DeleteForecastAdmin('${E(f.id)}')" title="刪除此 Forecast">🗑 刪除</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+    const pending = rows.filter(f => (f.status || 'submitted') === 'submitted').length;
+    const approved = rows.filter(f => f.status === 'approved').length;
+    const pelm = document.getElementById('forecast-pending-count');
+    const aelm = document.getElementById('forecast-approved-count');
+    if (pelm) pelm.textContent = pending;
+    if (aelm) aelm.textContent = approved;
+  }
+  G.renderForecastAdmin = renderForecastAdminV27;
+
+  function removeDuplicatedVendorDeleteButtons(){
+    const grid = document.getElementById('alliance-grid');
+    if (!grid) return;
+    grid.querySelectorAll('.alliance-card .entity-actions').forEach(actions => {
+      [...actions.querySelectorAll('button')].forEach(btn => {
+        const txt = S(btn.textContent);
+        if (txt.includes('刪除')) btn.remove();
+      });
+      if (!S(actions.textContent)) actions.remove();
+    });
+  }
+  const oldRenderAlliances = G.renderAlliances;
+  G.renderAlliances = function(){
+    const out = typeof oldRenderAlliances === 'function' ? oldRenderAlliances.apply(this, arguments) : undefined;
+    setTimeout(removeDuplicatedVendorDeleteButtons, 0);
+    return out;
   };
 
-  // 在每次 renderForecastAdmin 後自動執行（最終層包裝）
-  const _origRFAv24 = G.renderForecastAdmin;
-  G.renderForecastAdmin = function(){
-    if (typeof _origRFAv24 === 'function') _origRFAv24.apply(this, arguments);
-    setTimeout(patchAdminForecastV24, 50);
-    setTimeout(patchAdminForecastV24, 200); // 備用：多跑一次確保
-  };
+  function boot(){
+    try { G.populateVendorSelects?.(); } catch(_) {}
+    try { G.renderForecastAdmin?.(); } catch(_) {}
+    try { G.renderOrders?.(); } catch(_) {}
+    try { G.renderAlliances?.(); } catch(_) {}
+    setTimeout(patchOrderVendorCells, 80);
+    setTimeout(removeDuplicatedVendorDeleteButtons, 120);
+  }
 
-  // 頁面載入時也執行幾次
   document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(patchAdminForecastV24, 600);
-    setTimeout(patchAdminForecastV24, 1500);
+    setTimeout(boot, 300);
+    setTimeout(boot, 1200);
+    setTimeout(boot, 3200);
   });
-  setTimeout(patchAdminForecastV24, 800);
-  setTimeout(patchAdminForecastV24, 2000);
+  setTimeout(boot, 600);
+  setTimeout(boot, 1800);
+  setTimeout(boot, 3600);
+})();
+</script>
+
+
+
+<!-- v29 REAL PATCH: force visible vendor dropdowns + Forecast admin delete + alliance single button -->
+<style>
+.v29-vendor-select{min-width:150px;max-width:220px;padding:6px 28px 6px 10px;font-size:.76rem;border-radius:999px;background-color:var(--surface2);border:1px solid var(--border2)}
+.v29-vendor-name{font-size:.64rem;color:var(--text3);margin-top:3px;line-height:1.35;white-space:normal}.v29-danger{color:var(--red)!important;border-color:rgba(184,134,124,.28)!important;background:rgba(184,134,124,.08)!important}
+</style>
+<script>
+(function(){
+const G=window,D=document,A=v=>Array.isArray(v)?v:[],S=v=>String(v??''),E=v=>S(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'),db=()=>G.DB||{};
+const vendors=()=>A(db().vendors).filter(v=>v&&v.id),orders=()=>A(db().orders),assignments=()=>A(db().vendorAssignments);
+function vendorName(id){if(!id)return'未分派';try{if(typeof G.getVendorName==='function')return G.getVendorName(id)||id}catch(_){}const v=vendors().find(x=>S(x.id)===S(id));return v?(v.name||v.id):id}
+function vendorOptions(selected,placeholder){return `<option value="">${E(placeholder||'-- 選擇廠商 --')}</option>`+vendors().map(v=>`<option value="${E(v.id)}" ${S(v.id)===S(selected)?'selected':''}>${E(v.id)}｜${E(v.name||'')}</option>`).join('')}
+function orderVendor(order){const a=assignments().find(x=>S(x.orderId)===S(order.id)&&x.isPrimary)||assignments().find(x=>S(x.orderId)===S(order.id));return order.vendor||a?.vendorId||''}
+async function persistOrder(o){try{if(typeof G.persistOrder==='function')await G.persistOrder(o);else if(typeof G.saveOrderToFirestore==='function')await G.saveOrderToFirestore(o);else if(G.APP_MODE?.firebaseLive&&G.firestoreDb)await G.firestoreDb.collection('orders').doc(o.id).set(JSON.parse(JSON.stringify(o)),{merge:true})}catch(e){console.warn('[v29] persist order failed',e)}}
+async function persistAssignment(a){if(!a)return;try{if(typeof G.persistAssignment==='function')await G.persistAssignment(a);else if(G.APP_MODE?.firebaseLive&&G.firestoreDb)await G.firestoreDb.collection('vendor_assignments').doc(a.id).set(JSON.parse(JSON.stringify(a)),{merge:true})}catch(e){console.warn('[v29] persist assignment failed',e)}}
+G.v29ChangeOrderVendor=async function(orderId,vendorId){const o=orders().find(x=>S(x.id)===S(orderId));if(!o)return alert('找不到訂單：'+orderId);const old=orderVendor(o);o.vendor=vendorId||'';db().vendorAssignments=A(db().vendorAssignments);let a=db().vendorAssignments.find(x=>S(x.orderId)===S(o.id)&&x.isPrimary)||db().vendorAssignments.find(x=>S(x.orderId)===S(o.id));if(vendorId){if(!a){a={id:'VA-'+Date.now(),orderId:o.id,phase:'生產',qty:o.qty||o.planQty||0,isPrimary:true,createdAt:typeof G.nowText==='function'?G.nowText():new Date().toISOString()};db().vendorAssignments.push(a)}a.vendorId=vendorId;a.vendorName=vendorName(vendorId);a.isPrimary=true}else if(a){a.vendorId='';a.vendorName=''}try{if(typeof G.addAudit==='function')G.addAudit(o,'修改發包廠商',`${old||'未分派'} → ${vendorId||'未分派'}`)}catch(_){}await persistOrder(o);await persistAssignment(a);['renderOrders','renderDelivery','renderPlan','renderDashboard','renderVendorTasks','renderAlliances'].forEach(fn=>{try{G[fn]?.()}catch(_){}});setTimeout(v29PatchAll,80)};
+function makeSelect(order){const val=orderVendor(order);return `<select class="v29-vendor-select" onchange="window.v29ChangeOrderVendor('${E(order.id)}',this.value)">${vendorOptions(val)}</select><div class="v29-vendor-name">${E(vendorName(val))}</div>`}
+function patchSelectElement(id,placeholder){const sel=D.getElementById(id);if(!sel)return;const cur=sel.value;sel.innerHTML=vendorOptions(cur,placeholder);if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur}
+function forceModalVendorSelects(){['f-vendor','av-vendor','order-vendor-filter','u-vendor','s-vendor','p-vendor'].forEach(id=>patchSelectElement(id,id==='order-vendor-filter'?'全部廠商':'-- 選擇廠商 --'))}
+function patchByTable(tbodyId,col){const tb=D.getElementById(tbodyId);if(!tb)return;[...tb.querySelectorAll('tr')].forEach(tr=>{const id=tr.children[0]?.textContent?.trim();const o=orders().find(x=>S(x.id)===S(id));if(!o||!tr.children[col])return;if(!tr.children[col].querySelector('.v29-vendor-select'))tr.children[col].innerHTML=makeSelect(o)})}
+G.deleteForecastV29=async function(id){const f=A(db().forecasts).find(x=>S(x.id)===S(id));if(!f)return alert('找不到 Forecast：'+id);if(!confirm(`確定刪除 Forecast ${id}？\n此操作無法還原。`))return;db().forecasts=A(db().forecasts).filter(x=>S(x.id)!==S(id));try{if(G.firestoreDb)await G.firestoreDb.collection('forecasts').doc(id).delete()}catch(e){console.warn('[v29] delete forecast failed',e)}['renderForecastAdmin','renderForecastClient','renderDashboard'].forEach(fn=>{try{G[fn]?.()}catch(_){}});setTimeout(patchForecastAdmin,80)};
+function patchForecastAdmin(){const tb=D.getElementById('forecast-admin-tbody');if(!tb)return;[...tb.querySelectorAll('tr')].forEach(tr=>{const id=tr.children[0]?.textContent?.trim();if(!id||id==='目前沒有 Forecast')return;const td=tr.children[tr.children.length-1];if(!td||td.querySelector('[data-v29-del-forecast]'))return;const btn=D.createElement('button');btn.className='icon-btn v29-danger';btn.dataset.v29DelForecast='1';btn.title='刪除 Forecast';btn.textContent='🗑';btn.onclick=()=>G.deleteForecastV29(id);const box=td.querySelector('.table-actions,.actions,div')||td;box.style.display='flex';box.style.gap='6px';box.style.flexWrap='wrap';box.appendChild(btn)})}
+function cleanupAlliance(){const grid=D.getElementById('alliance-grid');if(!grid)return;grid.querySelectorAll('[data-admin-tools="1"]').forEach(x=>x.remove());grid.querySelectorAll('.entity-actions').forEach(actions=>{[...actions.querySelectorAll('button')].forEach(btn=>{if(btn.textContent.includes('刪除')||btn.title.includes('刪除')||btn.textContent.includes('🗑'))btn.remove()});[...actions.querySelectorAll('button')].slice(1).forEach(btn=>btn.remove());if(!actions.textContent.trim())actions.remove()})}
+function v29PatchAll(){forceModalVendorSelects();patchByTable('orders-tbody',4);patchByTable('delivery-tbody',1);patchByTable('plan-tbody',2);patchForecastAdmin();cleanupAlliance()}G.v29PatchAll=v29PatchAll;
+function wrap(name){const old=G[name];if(typeof old!=='function'||old.__v29)return;const fn=function(){const r=old.apply(this,arguments);setTimeout(v29PatchAll,0);setTimeout(v29PatchAll,120);return r};fn.__v29=true;G[name]=fn}['renderOrders','renderDelivery','renderPlan','renderForecastAdmin','renderAlliances','populateVendorSelects'].forEach(wrap);if(typeof G.showPage==='function'&&!G.showPage.__v29){const old=G.showPage;G.showPage=function(){const r=old.apply(this,arguments);setTimeout(v29PatchAll,80);setTimeout(v29PatchAll,450);return r};G.showPage.__v29=true}
+D.addEventListener('DOMContentLoaded',()=>{v29PatchAll();setTimeout(v29PatchAll,300);setTimeout(v29PatchAll,1200);setTimeout(v29PatchAll,3000)});new MutationObserver(()=>{clearTimeout(G.__v29mo);G.__v29mo=setTimeout(v29PatchAll,80)}).observe(D.documentElement,{childList:true,subtree:true});setInterval(v29PatchAll,2000);setTimeout(v29PatchAll,600);
+})();
+</script>
+
+
+
+<!-- v30 PATCH: Forecast 客供料連動 BOM 勾選 / 全部客供 -->
+<style>
+.v30-bom-supply-box{margin-top:12px;border:1px dashed var(--border2);background:rgba(255,253,249,.58);border-radius:14px;padding:14px}
+.v30-bom-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.v30-bom-title{font-size:.82rem;font-weight:800;color:var(--text)}
+.v30-bom-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.v30-mini-btn{padding:5px 10px;border-radius:999px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:.72rem;font-weight:700;cursor:pointer}
+.v30-mini-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.v30-bom-table{width:100%;border-collapse:collapse;min-width:760px}.v30-bom-table th,.v30-bom-table td{padding:8px 10px;font-size:.74rem;border-bottom:1px solid var(--border);vertical-align:middle}.v30-bom-table th{color:var(--text3);font-size:.64rem;text-transform:uppercase;letter-spacing:.8px;background:var(--surface2)}
+.v30-bom-table input[type="checkbox"]{width:auto}.v30-bom-table input,.v30-bom-table select{padding:7px 9px;font-size:.74rem}.v30-bom-muted{font-size:.72rem;color:var(--text3);line-height:1.7}.v30-bom-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(142,163,176,.2);font-size:.68rem;margin:2px}.v30-admin-material{margin-top:6px;font-size:.7rem;line-height:1.55;color:var(--text2)}
+</style>
+<script>
+(function(){
+  if(window.__v30ForecastBomMaterial) return; window.__v30ForecastBomMaterial = true;
+  const G=window,D=document;
+  const A=v=>Array.isArray(v)?v:[];
+  const S=v=>String(v??'').trim();
+  const N=v=>Number(v||0)||0;
+  const E=v=>S(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const now=()=> typeof G.nowText==='function' ? G.nowText() : new Date().toISOString().slice(0,16).replace('T',' ');
+  const user=()=> typeof G.getCurrentUser==='function' ? G.getCurrentUser() : (G.ACTIVE_USER||{});
+  const actor=()=> typeof G.actorInfo==='function' ? G.actorInfo() : {id:user().id||user().uid||'',name:user().name||user().email||'系統'};
+  function productLabel(p){return [p?.customerPartNo,p?.internalPartNo,p?.name||p?.productName||p?.product].filter(Boolean).join('｜') || p?.id || '';}
+  function activeBom(productId){return A(G.DB?.boms).find(b=>S(b.productId)===S(productId)&&(S(b.status||'active')==='active')) || A(G.DB?.boms).find(b=>S(b.productId)===S(productId));}
+  function bomItems(productId){return A(activeBom(productId)?.items).map((it,i)=>({
+    bomItemId:S(it.id||it.itemId||it.lineId||('LINE-'+(it.lineNo||i+1))),
+    lineNo:S(it.lineNo||i+1),
+    materialCode:S(it.partNo||it.materialCode||it.code||''),
+    materialName:S(it.name||it.materialName||it.description||''),
+    unit:S(it.unit||'pcs'),
+    usageQty:N(it.qty||it.usageQty||1),
+    scrapRate:N(it.scrapRate||0),
+    vendorId:S(it.vendorId||'')
+  }));}
+  function requiredQty(it,forecastQty){return Math.ceil(N(forecastQty) * N(it.usageQty||1) * (1+N(it.scrapRate||0)));}
+  async function saveForecast(f){
+    G.DB=G.DB||{}; G.DB.forecasts=A(G.DB.forecasts);
+    const idx=G.DB.forecasts.findIndex(x=>S(x.id)===S(f.id));
+    if(idx>=0) G.DB.forecasts[idx]={...G.DB.forecasts[idx],...f}; else G.DB.forecasts.unshift(f);
+    try{ if(G.firestoreDb) await G.firestoreDb.collection('forecasts').doc(f.id).set(JSON.parse(JSON.stringify(f)),{merge:true}); }catch(e){ console.warn('[v30] save forecast failed',e); }
+  }
+  async function saveOrder(o){
+    G.DB=G.DB||{}; G.DB.orders=A(G.DB.orders);
+    const idx=G.DB.orders.findIndex(x=>S(x.id)===S(o.id));
+    if(idx>=0) G.DB.orders[idx]={...G.DB.orders[idx],...o}; else G.DB.orders.unshift(o);
+    try{ if(G.firestoreDb) await G.firestoreDb.collection('orders').doc(o.id).set(JSON.parse(JSON.stringify(o)),{merge:true}); }catch(e){ console.warn('[v30] save order failed',e); }
+  }
+  function ensureClientPage(){
+    if(typeof G.renderForecastClient==='function') { try{G.renderForecastClient.__v30calling=true; G.renderForecastClient.__v30calling=false;}catch(_){} }
+    let p=D.getElementById('page-client-forecast');
+    if(!p){
+      const main=D.querySelector('main.main'); if(!main) return null;
+      p=D.createElement('div'); p.id='page-client-forecast'; p.style.display='none'; main.appendChild(p);
+    }
+    const card=p.querySelector('.approval-card');
+    if(!card) return p;
+    const productSel=D.getElementById('fc-product');
+    if(productSel && !productSel.__v30){
+      productSel.__v30=1;
+      productSel.addEventListener('change',()=>{ renderBomSelector(); });
+      const qtyInput=D.getElementById('fc-qty'); if(qtyInput && !qtyInput.__v30){ qtyInput.__v30=1; qtyInput.addEventListener('input',()=>{ if(D.getElementById('fc-mat-has')?.checked) renderBomSelector(collectSupplyItems()); }); }
+    }
+    const has=D.getElementById('fc-mat-has');
+    if(has && !has.__v30){
+      has.__v30=1;
+      has.addEventListener('change',()=>{ toggleMaterialArea(); renderBomSelector(); });
+    }
+    let fields=D.getElementById('fc-material-fields');
+    if(fields && !D.getElementById('fc-bom-supply-box')){
+      fields.innerHTML=`<div class="v30-bom-supply-box" id="fc-bom-supply-box">
+        <div class="v30-bom-toolbar">
+          <div><div class="v30-bom-title">客供料來源：依產品 BOM 勾選</div><div class="v30-bom-muted">選產品 / 料號後，系統會帶出 BOM。客戶可勾部分材料，也可以一鍵全部客供。</div></div>
+          <div class="v30-bom-actions"><button type="button" class="v30-mini-btn" onclick="window.v30SelectAllBomMaterials(true)">全部客供</button><button type="button" class="v30-mini-btn" onclick="window.v30SelectAllBomMaterials(false)">全部取消</button></div>
+        </div>
+        <div id="fc-bom-supply-list" class="v30-bom-muted">請先選擇產品 / 料號。</div>
+      </div>`;
+    }
+    toggleMaterialArea();
+    return p;
+  }
+  function toggleMaterialArea(){
+    const fields=D.getElementById('fc-material-fields');
+    if(fields) fields.style.display=D.getElementById('fc-mat-has')?.checked ? 'block':'none';
+  }
+  function renderBomSelector(prefill){
+    const box=D.getElementById('fc-bom-supply-list'); if(!box) return;
+    const pid=S(D.getElementById('fc-product')?.value);
+    const qty=N(D.getElementById('fc-qty')?.value);
+    if(!pid){ box.innerHTML='請先選擇產品 / 料號。'; return; }
+    const bom=activeBom(pid), items=bomItems(pid);
+    if(!bom || !items.length){ box.innerHTML=`此產品尚未建立 BOM，請先由管理者在「BOM 結構」建立。`; return; }
+    const old=A(prefill)||G.__v30PrefillSupplyItems||[];
+    const oldMap=new Map(old.map(x=>[S(x.bomItemId||x.materialCode||x.materialName),x]));
+    box.innerHTML=`<div class="table-wrap" style="border-radius:12px"><table class="v30-bom-table"><thead><tr><th style="width:46px">客供</th><th>Line</th><th>料號</th><th>品名</th><th>單位用量</th><th>需求量</th><th>預計交料日</th><th>客供數量</th><th>備註</th></tr></thead><tbody>${items.map((it,i)=>{
+      const key=S(it.bomItemId||it.materialCode||it.materialName), oldItem=oldMap.get(key)||oldMap.get(S(it.materialCode))||{};
+      const checked=!!oldItem.bomItemId;
+      const req=requiredQty(it,qty);
+      return `<tr data-v30-bom-row="1" data-line="${E(it.lineNo)}" data-bom-item-id="${E(it.bomItemId)}" data-code="${E(it.materialCode)}" data-name="${E(it.materialName)}" data-unit="${E(it.unit)}" data-usage="${E(it.usageQty)}" data-scrap="${E(it.scrapRate)}"><td><input type="checkbox" class="v30-bom-check" ${checked?'checked':''} onchange="window.v30SyncSupplyQty(this)"></td><td class="mono">${E(it.lineNo)}</td><td class="mono">${E(it.materialCode||'—')}</td><td>${E(it.materialName||'—')}</td><td class="mono">${it.usageQty} ${E(it.unit)}</td><td class="mono v30-req">${req.toLocaleString()}</td><td><input type="date" class="v30-bom-eta" value="${E(oldItem.expectedArrivalDate||oldItem.eta||'')}"></td><td><input type="number" min="0" class="v30-bom-qty" value="${E(oldItem.supplyQty||oldItem.qty|| (checked?req:''))}" placeholder="${req}"></td><td><input class="v30-bom-note" value="${E(oldItem.note||'')}"></td></tr>`;
+    }).join('')}</tbody></table></div>`;
+    G.__v30PrefillSupplyItems=[];
+  }
+  G.v30SelectAllBomMaterials=function(flag){
+    D.querySelectorAll('#fc-bom-supply-list .v30-bom-check').forEach(ch=>{ch.checked=!!flag; G.v30SyncSupplyQty(ch);});
+  };
+  G.v30SyncSupplyQty=function(ch){
+    const tr=ch.closest('tr'); if(!tr) return;
+    const qty=tr.querySelector('.v30-bom-qty');
+    if(ch.checked && qty && !S(qty.value)) qty.value=S(tr.querySelector('.v30-req')?.textContent||'').replace(/,/g,'');
+  };
+  function collectSupplyItems(){
+    const pid=S(D.getElementById('fc-product')?.value), qty=N(D.getElementById('fc-qty')?.value);
+    const bom=activeBom(pid);
+    const out=[];
+    D.querySelectorAll('#fc-bom-supply-list tr[data-v30-bom-row="1"]').forEach(tr=>{
+      if(!tr.querySelector('.v30-bom-check')?.checked) return;
+      const usage=N(tr.dataset.usage), scrap=N(tr.dataset.scrap), req=Math.ceil(qty*usage*(1+scrap));
+      out.push({
+        bomId:S(bom?.id||''), bomItemId:S(tr.dataset.bomItemId), lineNo:S(tr.dataset.line),
+        materialCode:S(tr.dataset.code), materialName:S(tr.dataset.name), unit:S(tr.dataset.unit||'pcs'),
+        usageQty:usage, scrapRate:scrap, requiredQty:req,
+        supplyQty:N(tr.querySelector('.v30-bom-qty')?.value||req), expectedArrivalDate:S(tr.querySelector('.v30-bom-eta')?.value),
+        deliveredQty:0, status:'pending', note:S(tr.querySelector('.v30-bom-note')?.value)
+      });
+    });
+    return out;
+  }
+  function supplySummary(items,mode){
+    items=A(items); const total=items.reduce((s,x)=>s+N(x.supplyQty||x.requiredQty),0);
+    const eta=items.map(x=>S(x.expectedArrivalDate)).filter(Boolean).sort()[0]||'';
+    return {has:items.length>0,name:mode==='all'?`全部客供（${items.length}項）`:`部分客供（${items.length}項）`,eta,qty:total,deliveredQty:0,note:items.map(x=>`${x.materialCode||x.materialName} × ${N(x.supplyQty||x.requiredQty).toLocaleString()}`).join('；')};
+  }
+  const oldToggle=G.toggleForecastMaterialFields;
+  G.toggleForecastMaterialFields=function(){ if(typeof oldToggle==='function') oldToggle.apply(this,arguments); toggleMaterialArea(); renderBomSelector(); };
+  const oldLoad=G.loadForecastToForm;
+  G.loadForecastToForm=function(id){
+    const f=A(G.DB?.forecasts).find(x=>S(x.id)===S(id));
+    if(typeof oldLoad==='function') oldLoad.apply(this,arguments);
+    ensureClientPage();
+    if(f){
+      const has=D.getElementById('fc-mat-has'); if(has){has.checked=!!(f.hasCustomerMaterial||A(f.customerSuppliedItems).length);}
+      toggleMaterialArea();
+      G.__v30PrefillSupplyItems=A(f.customerSuppliedItems);
+      setTimeout(()=>renderBomSelector(A(f.customerSuppliedItems)),60);
+    }
+  };
+  G.submitForecast=async function(){
+    ensureClientPage();
+    const u=user();
+    if(S(u.role)!=='client') return alert('只有客戶可填 Forecast');
+    if(!S(u.clientId)) return alert('此帳號缺少 clientId');
+    const pid=S(D.getElementById('fc-product')?.value);
+    const p=A(G.DB?.products).find(x=>S(x.id)===pid);
+    const qty=N(D.getElementById('fc-qty')?.value);
+    const target=S(D.getElementById('fc-date')?.value);
+    if(!p) return alert('請選擇產品 / 料號');
+    if(!qty || !target) return alert('請填寫數量與希望交期');
+    const has=!!D.getElementById('fc-mat-has')?.checked;
+    let supplyItems=[];
+    if(has){
+      renderBomSelector();
+      supplyItems=collectSupplyItems();
+      if(!supplyItems.length) return alert('已勾選有客供料，請至少選擇一個 BOM 材料，或按「全部客供」。');
+      const missing=supplyItems.find(x=>!x.expectedArrivalDate || !N(x.supplyQty));
+      if(missing) return alert('客供 BOM 材料請填寫「預計交料日」與「客供數量」。');
+    }
+    const bom=activeBom(pid), allCount=bomItems(pid).length;
+    const mode=!has?'none':(supplyItems.length===allCount?'all':'partial');
+    const sum=supplySummary(supplyItems,mode);
+    const a=actor();
+    const base={
+      clientId:S(u.clientId), clientName:S(u.clientName||u.company||u.companyName||''),
+      productId:p.id, product:productLabel(p), productName:S(p.name||p.productName||''), internalPartNo:S(p.internalPartNo||''), customerPartNo:S(p.customerPartNo||''),
+      qty, targetDate:target, notes:S(D.getElementById('fc-notes')?.value),
+      bomId:S(bom?.id||''), hasCustomerMaterial:has, customerSuppliedMode:mode, customerSuppliedItems:supplyItems, customerMaterial:sum,
+      updatedAt:now(), updatedBy:a.name||u.name||u.email||''
+    };
+    const editId=S(G._fcEditId||'');
+    if(editId){
+      const f=A(G.DB?.forecasts).find(x=>S(x.id)===editId); if(!f) return alert('找不到原始 Forecast，可能已被刪除');
+      if(S(f.status||'submitted')!=='submitted') return alert('此 Forecast 已處理，無法再修改');
+      Object.assign(f,base);
+      await saveForecast(f);
+      G._fcEditId='';
+    }else{
+      const f={id:'FC-'+Date.now(),...base,status:'submitted',createdAt:now(),createdBy:a.id,createdByUid:S(u.id||u.uid||''),createdByName:a.name||u.name||u.email||'',visibleTo:['admin','client:'+S(u.clientId)]};
+      await saveForecast(f);
+    }
+    ['fc-qty','fc-date','fc-notes'].forEach(id=>{const el=D.getElementById(id); if(el) el.value='';});
+    const sel=D.getElementById('fc-product'); if(sel) sel.value='';
+    const ck=D.getElementById('fc-mat-has'); if(ck) ck.checked=false;
+    toggleMaterialArea(); renderBomSelector();
+    try{ G.cancelForecastEdit?.(); }catch(_){}
+    try{ G.renderForecastClient?.(); G.renderForecastAdmin?.(); G.renderDashboard?.(); }catch(_){}
+    alert(editId?'Forecast 已更新':'Forecast 已送出');
+  };
+  const oldApprove=G.approveForecastToOrder;
+  G.approveForecastToOrder=async function(id){
+    const f=A(G.DB?.forecasts).find(x=>S(x.id)===S(id));
+    if(!f && typeof oldApprove==='function') return oldApprove.apply(this,arguments);
+    if(!f) return alert('找不到 Forecast');
+    const a=actor(), oid='A-'+Date.now();
+    const has=!!(f.hasCustomerMaterial||A(f.customerSuppliedItems).length);
+    const o={id:oid,clientId:f.clientId,client:f.clientName||'',productId:f.productId||'',product:f.product||f.productName||'',qty:N(f.qty),vendor:'',vendorId:'',stock:0,planQty:N(f.qty),delivery:f.targetDate||'',status:has?'待客供料':'待發單',notes:f.notes||'',sourceForecastId:f.id,bomId:f.bomId||'',hasCustomerMaterial:has,customerSuppliedMode:f.customerSuppliedMode||'none',customerSuppliedItems:A(f.customerSuppliedItems),customerMaterial:f.customerMaterial||supplySummary(f.customerSuppliedItems,f.customerSuppliedMode),createdAt:now(),createdBy:a.name,visibleTo:['admin','client:'+f.clientId],flow:{vendorShipments:[],internalReceipt:{},customerShipment:{},customerReceipt:{}},auditLog:[]};
+    await saveOrder(o);
+    f.status='approved'; f.orderId=oid; f.approvedAt=now(); f.approvedBy=a.name;
+    await saveForecast(f);
+    try{ G.renderForecastAdmin?.(); G.renderForecastClient?.(); G.renderOrders?.(); G.renderDashboard?.(); G.showAdminPage?.('orders'); }catch(_){}
+    alert('已建立正式訂單，BOM 客供料資訊已帶入');
+  };
+  function materialHtml(f){
+    const items=A(f.customerSuppliedItems); if(!items.length) return '';
+    return `<div class="v30-admin-material"><div>${f.customerSuppliedMode==='all'?'全部客供':'部分客供'}：${items.length} 項 ｜ BOM ${E(f.bomId||items[0]?.bomId||'—')}</div>${items.slice(0,3).map(x=>`<span class="v30-bom-pill">${E(x.materialCode||x.materialName)} × ${N(x.supplyQty||x.requiredQty).toLocaleString()} ｜ ${E(x.expectedArrivalDate||'未填日期')}</span>`).join('')}${items.length>3?`<span class="v30-bom-pill">+${items.length-3} 項</span>`:''}</div>`;
+  }
+  function patchForecastRows(){
+    D.querySelectorAll('#forecast-client-tbody tr,#forecast-admin-tbody tr').forEach(tr=>{
+      const id=S(tr.children[0]?.textContent); if(!id || id.includes('目前')) return;
+      const f=A(G.DB?.forecasts).find(x=>S(x.id)===id); if(!f || !A(f.customerSuppliedItems).length) return;
+      const cell=tr.children[2] || tr.children[1];
+      if(cell && !cell.querySelector('.v30-admin-material')) cell.insertAdjacentHTML('beforeend',materialHtml(f));
+    });
+  }
+  ['renderForecastClient','renderForecastAdmin'].forEach(name=>{
+    const old=G[name];
+    if(typeof old==='function' && !old.__v30wrap){
+      const fn=function(){ const r=old.apply(this,arguments); ensureClientPage(); setTimeout(()=>{renderBomSelector(); patchForecastRows();},80); return r;};
+      fn.__v30wrap=true; G[name]=fn;
+    }
+  });
+  const oldShow=G.showPage;
+  if(typeof oldShow==='function' && !oldShow.__v30bom){
+    G.showPage=function(){ const r=oldShow.apply(this,arguments); setTimeout(()=>{ensureClientPage(); renderBomSelector(); patchForecastRows();},120); return r;};
+    G.showPage.__v30bom=true;
+  }
+  function boot(){ensureClientPage(); renderBomSelector(); patchForecastRows();}
+  D.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,400);setTimeout(boot,1600);});
+  setTimeout(boot,800); setTimeout(boot,2200); setInterval(()=>{ patchForecastRows(); },2500);
 })();
 </script>
 
