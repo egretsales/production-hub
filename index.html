@@ -9384,8 +9384,8 @@ window.addEventListener('DOMContentLoaded', () => {
       block.innerHTML = `
         <div class="report-toolbar" style="margin-bottom:18px">
           <div class="tabs" style="margin-bottom:0">
-            <button class="tab active" data-plan-view="master">圖1上｜生產排產進度表</button>
-            <button class="tab" data-plan-view="workshop">圖1下｜車間生產計畫表</button>
+            <button class="tab active" data-plan-view="master">生產排產進度表</button>
+            <button class="tab" data-plan-view="workshop">車間生產計畫表</button>
           </div>
           <span class="soft-tag">甘特 + 每日量 / 統計 + 明細</span>
         </div>
@@ -9429,7 +9429,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (tabs) {
           tabs.innerHTML = `
             <button class="tab active" onclick="setGanttMode('orders',this)">訂單甘特</button>
-            <button class="tab" onclick="setGanttMode('equipment',this)">圖2｜工序設備排程</button>
+            <button class="tab" onclick="setGanttMode('equipment',this)">工序設備排程</button>
             <button class="tab" onclick="setGanttMode('plans',this)">生產計畫</button>
           `;
         }
