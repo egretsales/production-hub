@@ -9384,8 +9384,8 @@ window.addEventListener('DOMContentLoaded', () => {
       block.innerHTML = `
         <div class="report-toolbar" style="margin-bottom:18px">
           <div class="tabs" style="margin-bottom:0">
-            <button class="tab active" data-plan-view="master">生產排產進度表</button>
-            <button class="tab" data-plan-view="workshop">車間生產計畫表</button>
+            <button class="tab active" data-plan-view="master">圖1上｜生產排產進度表</button>
+            <button class="tab" data-plan-view="workshop">圖1下｜車間生產計畫表</button>
           </div>
           <span class="soft-tag">甘特 + 每日量 / 統計 + 明細</span>
         </div>
@@ -9429,7 +9429,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (tabs) {
           tabs.innerHTML = `
             <button class="tab active" onclick="setGanttMode('orders',this)">訂單甘特</button>
-            <button class="tab" onclick="setGanttMode('equipment',this)">工序設備排程</button>
+            <button class="tab" onclick="setGanttMode('equipment',this)">圖2｜工序設備排程</button>
             <button class="tab" onclick="setGanttMode('plans',this)">生產計畫</button>
           `;
         }
@@ -15076,5 +15076,275 @@ D.addEventListener('DOMContentLoaded',()=>{v29PatchAll();setTimeout(v29PatchAll,
   D.addEventListener('DOMContentLoaded',()=>{setTimeout(boot,300);setTimeout(boot,1200);setTimeout(boot,2500)});setTimeout(boot,600);setInterval(()=>{patchProductMaster();patchProductLinking()},3000);
 })();
 </script>
+
+<!-- OEM HUB v32 Invoice Complete Hotfix: order -> invoice, AR, payments, delete/void, selector autofill -->
+<script id="invoice-complete-v32-hotfix">
+(function(){
+  const G = window;
+  const DB = G.DB = G.DB || {};
+  const arr = v => Array.isArray(v) ? v : [];
+  const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+  const today = () => new Date().toISOString().slice(0,10);
+  const nowText = () => new Date().toISOString().slice(0,19).replace('T',' ');
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const money = (v,c='TWD') => `${c || 'TWD'} ${num(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+  const uid = (prefix, bucket) => {
+    let id;
+    do { id = `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2,6).toUpperCase()}`; }
+    while(arr(bucket).some(x => x && x.id === id));
+    return id;
+  };
+  const addDays = (d, days) => {
+    const base = d ? new Date(d) : new Date();
+    if (!Number.isFinite(base.getTime())) return '';
+    base.setDate(base.getDate() + days);
+    return base.toISOString().slice(0,10);
+  };
+  function ensureBuckets(){
+    DB.orders = arr(DB.orders); DB.quotes = arr(DB.quotes); DB.products = arr(DB.products);
+    DB.invoices = arr(DB.invoices); DB.payments = arr(DB.payments);
+  }
+  function clientName(id, fallback=''){
+    const c = arr(G.CLIENTS).find(x => x && x.id === id);
+    return c?.name || c?.n || fallback || id || '';
+  }
+  function productLabel(p){
+    if (!p) return '';
+    return [p.name, p.internalPartNo, p.customerPartNo].filter(Boolean).join(' / ') || p.product || p.id || '';
+  }
+  function findProduct(id){ return arr(DB.products).find(p => p && p.id === id) || null; }
+  function findOrder(id){ return arr(DB.orders).find(o => o && o.id === id) || null; }
+  function findQuote(id){ return arr(DB.quotes).find(q => q && q.id === id) || null; }
+  function latestQuoteForOrder(o){
+    return arr(DB.quotes)
+      .filter(q => (!o.clientId || q.clientId === o.clientId) && (!o.productId || q.productId === o.productId))
+      .sort((a,b) => String(b.updatedAt || b.createdAt || '').localeCompare(String(a.updatedAt || a.createdAt || '')))[0] || null;
+  }
+  async function saveDoc(col, doc){
+    try {
+      if (typeof G.saveDoc === 'function') return await G.saveDoc(col, doc);
+      if (G.firestoreDb?.collection && doc?.id) return await G.firestoreDb.collection(col).doc(doc.id).set(JSON.parse(JSON.stringify(doc)), {merge:true});
+    } catch(e){ console.warn('Invoice save failed', col, e); }
+  }
+  async function deleteDoc(col, id){
+    try { if (G.firestoreDb?.collection && id) await G.firestoreDb.collection(col).doc(id).delete(); } catch(e){ console.warn('Invoice delete failed', col, e); }
+  }
+  function persistLocal(){ try { if (typeof G.saveDB === 'function') G.saveDB(); } catch(e){} }
+  function fillInvoiceFromOrder(orderId){
+    ensureBuckets();
+    const o = findOrder(orderId);
+    if (!o) return;
+    const q = o.quoteId ? findQuote(o.quoteId) : latestQuoteForOrder(o);
+    const p = findProduct(o.productId);
+    const set = (id,val) => { const el = document.getElementById(id); if (el) el.value = val ?? ''; };
+    set('inv-order', o.id || '');
+    set('inv-quote', q?.id || '');
+    set('inv-client', o.clientId || q?.clientId || '');
+    set('inv-product', o.productId || q?.productId || '');
+    set('inv-qty', num(o.qty || o.planQty || q?.qty || 0));
+    set('inv-unit-price', num(o.unitPrice || q?.unitPrice || 0));
+    set('inv-tooling', num(o.toolingFee || q?.toolingFee || 0));
+    set('inv-shipping', num(o.shippingFee || q?.shippingFee || 0));
+    set('inv-misc', num(o.miscFee || q?.miscFee || 0));
+    set('inv-tax', document.getElementById('inv-tax')?.value || 5);
+    set('inv-currency', o.currency || q?.currency || 'USD');
+    if (!document.getElementById('inv-issue')?.value) set('inv-issue', today());
+    if (!document.getElementById('inv-due')?.value) set('inv-due', addDays(today(), 30));
+    set('inv-notes', `由訂單 ${o.id || ''} 建立${p ? '｜' + productLabel(p) : ''}`);
+    G.BillingAR?.refreshInvoiceLive?.();
+  }
+  function calcInvoice(inv){
+    const o = inv.orderId ? findOrder(inv.orderId) : null;
+    const q = inv.quoteId ? findQuote(inv.quoteId) : (o ? latestQuoteForOrder(o) : null);
+    const qty = num(inv.qty || o?.qty || o?.planQty || q?.qty || 0);
+    const unitPrice = num(inv.unitPrice || o?.unitPrice || q?.unitPrice || 0);
+    const tooling = num(inv.toolingFee || o?.toolingFee || q?.toolingFee || 0);
+    const shipping = num(inv.shippingFee || o?.shippingFee || q?.shippingFee || 0);
+    const misc = num(inv.miscFee || o?.miscFee || q?.miscFee || 0);
+    const taxRate = num(inv.taxRate ?? 5);
+    const subtotal = qty * unitPrice + tooling + shipping + misc;
+    const tax = subtotal * taxRate / 100;
+    const total = subtotal + tax;
+    const paidAmount = arr(DB.payments).filter(p => p.invoiceId === inv.id && p.status !== 'void').reduce((s,p)=>s+num(p.amount),0);
+    const balance = total - paidAmount;
+    let status = inv.status || 'open';
+    if (status !== 'void') {
+      if (total > 0 && balance <= 0.0001) status = 'paid';
+      else if (paidAmount > 0) status = 'partial';
+      else if (inv.dueDate && new Date(inv.dueDate + 'T23:59:59') < new Date()) status = 'overdue';
+      else if (status === 'draft') status = 'open';
+    }
+    const clientId = inv.clientId || o?.clientId || q?.clientId || '';
+    const productId = inv.productId || o?.productId || q?.productId || '';
+    const prod = findProduct(productId);
+    return {...inv, qty, unitPrice, toolingFee:tooling, shippingFee:shipping, miscFee:misc, taxRate, subtotal, tax, total, paidAmount, balance, status,
+      clientId, clientName: inv.clientName || o?.client || clientName(clientId), productId,
+      productName: productLabel(prod) || o?.product || productId || '—', currency: inv.currency || o?.currency || q?.currency || 'USD'};
+  }
+  function ensureOrderChangeBinding(){
+    const sel = document.getElementById('inv-order');
+    if (sel && !sel.dataset.invoiceV32Bound) {
+      sel.dataset.invoiceV32Bound = '1';
+      sel.addEventListener('change', () => fillInvoiceFromOrder(sel.value));
+    }
+  }
+  function ensurePaymentInvoiceOptions(){
+    const el = document.getElementById('pay-invoice');
+    if (!el) return;
+    el.innerHTML = arr(DB.invoices).map(inv => {
+      const r = calcInvoice(inv);
+      return `<option value="${esc(r.id)}">${esc(r.id)} / ${esc(r.clientName || '')} / ${money(r.balance, r.currency)}</option>`;
+    }).join('');
+  }
+  function renderPayments(){
+    const tbody = document.getElementById('payment-tbody');
+    if (!tbody) return;
+    const rows = arr(DB.payments).slice().sort((a,b)=>String(b.paymentDate||b.createdAt||'').localeCompare(String(a.paymentDate||a.createdAt||'')));
+    tbody.innerHTML = rows.map(p => {
+      const inv = calcInvoice(arr(DB.invoices).find(x => x.id === p.invoiceId) || {id:p.invoiceId});
+      return `<tr><td class="mono">${esc(p.id)}</td><td class="mono">${esc(p.invoiceId || '')}</td><td>${esc(inv.clientName || '')}</td><td class="mono">${esc(p.paymentDate || '')}</td><td><strong>${money(p.amount, inv.currency)}</strong></td><td>${esc(p.method || '')}</td><td>${esc(p.referenceNo || '')}</td><td>${typeof G.pill === 'function' ? G.pill(p.status || 'posted') : esc(p.status || 'posted')}</td><td><div class="actions"><button class="icon-btn" onclick="openModal('modal-payment'); window.BillingAR.openPaymentForm('${esc(p.id)}')">✏</button><button class="icon-btn" onclick="window.BillingAR.removePayment('${esc(p.id)}')">🗑</button></div></td></tr>`;
+    }).join('') || '<tr><td colspan="9" class="empty">目前沒有收款資料</td></tr>';
+  }
+  const B = G.BillingAR = G.BillingAR || {};
+  const oldOpen = B.openInvoiceForm;
+  B.openInvoiceForm = function(id=''){
+    ensureBuckets();
+    if (oldOpen) oldOpen.call(B, id);
+    ensureOrderChangeBinding();
+    ensurePaymentInvoiceOptions();
+    if (!id) {
+      const set = (i,v) => { const el = document.getElementById(i); if (el && !el.value) el.value = v; };
+      set('inv-id', uid('INV', DB.invoices));
+      set('inv-status', 'open');
+      set('inv-issue', today());
+      set('inv-due', addDays(today(), 30));
+      set('inv-currency', 'USD');
+    }
+    B.refreshInvoiceLive?.();
+  };
+  B.createInvoiceFromOrder = function(orderId){
+    ensureBuckets();
+    const o = findOrder(orderId);
+    if (!o) return alert('找不到這張訂單');
+    if (arr(DB.invoices).some(inv => inv.orderId === o.id && inv.status !== 'void')) return alert('這張訂單已經有 Invoice 了');
+    if (typeof G.openModal === 'function') G.openModal('modal-invoice');
+    B.openInvoiceForm('');
+    fillInvoiceFromOrder(o.id);
+  };
+  B.seedInvoicesFromOrders = async function(){
+    ensureBuckets();
+    const source = arr(DB.orders).filter(o => o && o.id);
+    if (!source.length) return alert('目前沒有訂單，無法建立 Invoice。');
+    let created = 0, skipped = 0;
+    for (const o of source) {
+      if (arr(DB.invoices).some(inv => inv.orderId === o.id && inv.status !== 'void')) { skipped++; continue; }
+      const q = o.quoteId ? findQuote(o.quoteId) : latestQuoteForOrder(o);
+      const issue = today();
+      const doc = {
+        id: uid('INV', DB.invoices), orderId: o.id, quoteId: q?.id || '', clientId: o.clientId || q?.clientId || '',
+        clientName: o.client || clientName(o.clientId || q?.clientId), productId: o.productId || q?.productId || '',
+        productName: o.product || productLabel(findProduct(o.productId || q?.productId)), qty: num(o.qty || o.planQty || q?.qty || 0),
+        unitPrice: num(o.unitPrice || q?.unitPrice || 0), toolingFee: num(o.toolingFee || q?.toolingFee || 0),
+        shippingFee: num(o.shippingFee || q?.shippingFee || 0), miscFee: num(o.miscFee || q?.miscFee || 0),
+        taxRate: 5, issueDate: issue, dueDate: addDays(issue, 30), status: 'open', currency: o.currency || q?.currency || 'USD',
+        notes: '由訂單自動建立', createdAt: nowText(), updatedAt: nowText()
+      };
+      DB.invoices.unshift(doc);
+      await saveDoc('invoices', doc);
+      created++;
+    }
+    persistLocal();
+    B.renderAll?.();
+    alert(created ? `已由訂單建立 ${created} 筆 Invoice${skipped ? `，略過 ${skipped} 筆已存在` : ''}` : '沒有可建立的新 Invoice：所有訂單都已經有 Invoice。');
+  };
+  B.saveInvoice = async function(){
+    ensureBuckets();
+    const id = (document.getElementById('inv-id')?.value || '').trim() || uid('INV', DB.invoices);
+    const old = arr(DB.invoices).find(x => x.id === id) || {};
+    const o = findOrder((document.getElementById('inv-order')?.value || '').trim());
+    const doc = {...old,
+      id, orderId: (document.getElementById('inv-order')?.value || '').trim(), quoteId: (document.getElementById('inv-quote')?.value || '').trim(),
+      clientId: (document.getElementById('inv-client')?.value || '').trim() || o?.clientId || '', productId: (document.getElementById('inv-product')?.value || '').trim() || o?.productId || '',
+      qty: num(document.getElementById('inv-qty')?.value), unitPrice: num(document.getElementById('inv-unit-price')?.value),
+      toolingFee: num(document.getElementById('inv-tooling')?.value), shippingFee: num(document.getElementById('inv-shipping')?.value), miscFee: num(document.getElementById('inv-misc')?.value),
+      taxRate: num(document.getElementById('inv-tax')?.value || 5), issueDate: document.getElementById('inv-issue')?.value || today(), dueDate: document.getElementById('inv-due')?.value || addDays(today(), 30),
+      status: document.getElementById('inv-status')?.value || 'open', currency: document.getElementById('inv-currency')?.value || 'USD', notes: document.getElementById('inv-notes')?.value || '',
+      updatedAt: nowText(), createdAt: old.createdAt || nowText()
+    };
+    const calced = calcInvoice(doc);
+    doc.clientName = calced.clientName; doc.productName = calced.productName;
+    const idx = DB.invoices.findIndex(x => x.id === id);
+    if (idx >= 0) DB.invoices[idx] = doc; else DB.invoices.unshift(doc);
+    await saveDoc('invoices', doc);
+    persistLocal();
+    if (typeof G.closeModal === 'function') G.closeModal('modal-invoice');
+    B.renderAll?.();
+    alert('Invoice 已儲存');
+  };
+  B.savePayment = async function(){
+    ensureBuckets();
+    const id = (document.getElementById('pay-id')?.value || '').trim() || uid('PAY', DB.payments);
+    const old = arr(DB.payments).find(x => x.id === id) || {};
+    const doc = {...old, id, invoiceId: (document.getElementById('pay-invoice')?.value || '').trim(), paymentDate: document.getElementById('pay-date')?.value || today(), amount: num(document.getElementById('pay-amount')?.value), method: document.getElementById('pay-method')?.value || 'bank', referenceNo: document.getElementById('pay-ref')?.value || '', status: document.getElementById('pay-status')?.value || 'posted', notes: document.getElementById('pay-notes')?.value || '', updatedAt: nowText(), createdAt: old.createdAt || nowText()};
+    if (!doc.invoiceId) return alert('請先選擇 Invoice');
+    if (!doc.amount) return alert('請輸入收款金額');
+    const idx = DB.payments.findIndex(x => x.id === id);
+    if (idx >= 0) DB.payments[idx] = doc; else DB.payments.unshift(doc);
+    await saveDoc('payments', doc);
+    persistLocal();
+    if (typeof G.closeModal === 'function') G.closeModal('modal-payment');
+    B.renderAll?.();
+    alert('收款已儲存');
+  };
+  const oldRenderInvoices = B.renderInvoices;
+  B.renderInvoices = function(){
+    ensureBuckets();
+    if (oldRenderInvoices) oldRenderInvoices.call(B);
+    const tbody = document.getElementById('invoice-tbody');
+    if (tbody) {
+      Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+        const orderId = tr.querySelector('td:nth-child(3) .mono')?.textContent?.trim();
+        if (!orderId || orderId === '—') return;
+      });
+    }
+    ensurePaymentInvoiceOptions();
+  };
+  const oldRenderAll = B.renderAll;
+  B.renderAll = function(){
+    ensureBuckets();
+    if (oldRenderAll) oldRenderAll.call(B);
+    renderPayments();
+    ensurePaymentInvoiceOptions();
+  };
+  B.removePayment = async function(id){
+    if (!confirm('確定刪除此收款紀錄？')) return;
+    DB.payments = arr(DB.payments).filter(x => x.id !== id);
+    await deleteDoc('payments', id);
+    persistLocal();
+    B.renderAll?.();
+  };
+  B.deleteInvoice = async function(id){
+    const inv = arr(DB.invoices).find(x => x.id === id);
+    if (!inv) return;
+    if (arr(DB.payments).some(p => p.invoiceId === id && p.status !== 'void')) return alert('這張 Invoice 已有收款紀錄，請先刪除或作廢收款。');
+    if (!confirm(`確定刪除 Invoice ${id}？`)) return;
+    DB.invoices = arr(DB.invoices).filter(x => x.id !== id);
+    await deleteDoc('invoices', id);
+    persistLocal();
+    B.renderAll?.();
+  };
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const txt = (btn.textContent || '').trim();
+    if (txt.includes('由訂單建立 Invoice')) {
+      e.preventDefault(); e.stopPropagation();
+      B.seedInvoicesFromOrders();
+    }
+  }, true);
+  setTimeout(() => { try { B.renderAll?.(); } catch(e){} }, 300);
+})();
+</script>
+
 </body>
 </html>
