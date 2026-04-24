@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OEM·HUB — PMC Professional Core v75 Sidebar No Flicker</title>
+<title>OEM·HUB — PMC v96 Clean Sidebar</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -18933,6 +18933,1763 @@ function tick(){addDeletes();fixMRP();refreshBadges()}W.refreshSidebarBadges=ref
   }
   document.addEventListener('DOMContentLoaded',function(){setTimeout(polishMRP,80);});
   setTimeout(polishMRP,250);
+})();
+</script>
+
+
+<!-- V91 PROFESSIONAL PMC STABLE REBUILD: fixed workflow sidebar + real badges + control tower + MRP polish -->
+<style id="v91-pmc-stable-css">
+/* ---------- V91: absolute sidebar stability ---------- */
+#sidebar-v86{
+  width:260px!important;
+  min-width:260px!important;
+  max-width:260px!important;
+  flex:0 0 260px!important;
+  transition:none!important;
+  animation:none!important;
+  contain:layout paint!important;
+}
+#sidebar-v86 *{
+  transition:none!important;
+  animation:none!important;
+}
+#sidebar-v86 .v86-note{
+  margin:10px 16px 14px 18px!important;
+  padding:10px 12px!important;
+  border-radius:14px!important;
+  background:rgba(255,253,249,.72)!important;
+  border:1px solid var(--border)!important;
+  color:var(--text2)!important;
+  font-size:.7rem!important;
+}
+#sidebar-v86 .v86-section{
+  margin-bottom:10px!important;
+}
+#sidebar-v86 .v86-label{
+  padding:5px 18px 9px!important;
+  font-size:.61rem!important;
+  letter-spacing:1.8px!important;
+}
+#sidebar-v86 .v86-item{
+  min-height:41px!important;
+  padding:9px 16px 9px 18px!important;
+  margin:1px 10px 1px 0!important;
+  border-left:3px solid transparent!important;
+  border-radius:0 12px 12px 0!important;
+  font-weight:700!important;
+  color:var(--text2)!important;
+  background:transparent!important;
+  transform:none!important;
+}
+#sidebar-v86 .v86-item:hover{
+  transform:none!important;
+  background:rgba(255,253,249,.76)!important;
+}
+#sidebar-v86 .v86-item.active{
+  color:var(--text)!important;
+  border-left-color:var(--accent)!important;
+  background:linear-gradient(90deg,rgba(127,139,134,.20),rgba(255,253,249,.66))!important;
+  box-shadow:0 8px 20px rgba(95,82,72,.07)!important;
+}
+#sidebar-v86 .v86-item.active::after{display:none!important;}
+#sidebar-v86 .v86-icon{
+  width:22px!important;
+  flex:0 0 22px!important;
+}
+#sidebar-v86 .v86-text{
+  font-size:.82rem!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#sidebar-v86 .v86-badge{
+  display:none!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:22px!important;
+  height:22px!important;
+  padding:0 7px!important;
+  margin-left:auto!important;
+  border-radius:999px!important;
+  background:rgba(184,134,124,.14)!important;
+  border:1px solid rgba(184,134,124,.26)!important;
+  color:var(--red)!important;
+  font-family:'JetBrains Mono','Noto Sans TC',monospace!important;
+  font-size:.62rem!important;
+  font-weight:900!important;
+}
+#sidebar-v86 .v86-badge.on{display:inline-flex!important;}
+#sidebar-v86 .drag-handle,
+#sidebar-v86 .sidebar-nav-tools,
+.sidebar-nav-tools,
+.sidebar-drag-toast{display:none!important;}
+
+/* ---------- V91: professional control tower ---------- */
+.v91-tower{
+  display:grid;
+  gap:18px;
+}
+.v91-hero{
+  position:relative;
+  overflow:hidden;
+  border:1px solid var(--border2);
+  border-radius:26px;
+  padding:24px;
+  background:
+    linear-gradient(135deg,rgba(255,253,249,.96),rgba(239,231,223,.76)),
+    radial-gradient(circle at 88% 8%,rgba(127,139,134,.18),transparent 34%);
+  box-shadow:0 24px 64px rgba(95,82,72,.10);
+}
+.v91-hero::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(rgba(127,139,134,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(127,139,134,.055) 1px,transparent 1px);
+  background-size:26px 26px;
+  mask-image:linear-gradient(90deg,transparent,#000 16%,#000 76%,transparent);
+}
+.v91-hero-inner{
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);
+  gap:20px;
+  align-items:center;
+}
+.v91-kicker{
+  font-family:'JetBrains Mono','Noto Sans TC',monospace;
+  color:var(--accent);
+  font-size:.68rem;
+  font-weight:800;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.v91-title{
+  font-size:1.58rem;
+  line-height:1.35;
+  font-weight:900;
+  color:var(--ink-strong,var(--text));
+  letter-spacing:-.5px;
+}
+.v91-desc{
+  margin-top:10px;
+  color:var(--text2);
+  font-size:.88rem;
+  line-height:1.85;
+  max-width:760px;
+}
+.v91-flow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:18px;
+}
+.v91-flow span{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(255,253,249,.74);
+  color:var(--text2);
+  font-size:.72rem;
+  font-weight:800;
+}
+.v91-health-card{
+  background:rgba(255,253,249,.74);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:18px;
+}
+.v91-health-top{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  align-items:center;
+  margin-bottom:10px;
+  color:var(--text2);
+  font-size:.74rem;
+  font-weight:800;
+}
+.v91-health-score{
+  font-family:'JetBrains Mono','Noto Sans TC',monospace;
+  font-size:2rem;
+  font-weight:900;
+  color:var(--text);
+}
+.v91-health-bar{
+  height:10px;
+  border-radius:999px;
+  background:var(--surface3);
+  overflow:hidden;
+}
+.v91-health-fill{
+  height:100%;
+  width:0;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--green),var(--yellow),var(--red));
+}
+.v91-kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(6,minmax(120px,1fr));
+  gap:12px;
+}
+.v91-kpi{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 14px 36px rgba(95,82,72,.065);
+}
+.v91-kpi .label{
+  color:var(--text3);
+  font-size:.66rem;
+  font-weight:900;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-bottom:8px;
+}
+.v91-kpi .value{
+  font-family:'JetBrains Mono','Noto Sans TC',monospace;
+  font-size:1.55rem;
+  font-weight:900;
+  color:var(--text);
+}
+.v91-kpi .sub{
+  color:var(--text3);
+  font-size:.7rem;
+  margin-top:6px;
+  line-height:1.5;
+}
+.v91-work-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);
+  gap:16px;
+}
+.v91-panel{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:18px;
+  box-shadow:0 14px 38px rgba(95,82,72,.065);
+}
+.v91-panel-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+  font-size:.9rem;
+  font-weight:900;
+  color:var(--text);
+}
+.v91-lanes{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:10px;
+}
+.v91-lane{
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:rgba(246,240,232,.62);
+  padding:12px;
+  min-height:168px;
+}
+.v91-lane-head{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  align-items:center;
+  margin-bottom:10px;
+  font-size:.76rem;
+  font-weight:900;
+  color:var(--text);
+}
+.v91-lane-count{
+  min-width:22px;
+  height:22px;
+  padding:0 7px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+  background:rgba(255,253,249,.78);
+  border:1px solid var(--border);
+  color:var(--text2);
+  font-family:'JetBrains Mono','Noto Sans TC',monospace;
+  font-size:.66rem;
+}
+.v91-ticket{
+  border:1px solid var(--border);
+  background:rgba(255,253,249,.80);
+  border-radius:14px;
+  padding:10px;
+  margin-bottom:8px;
+}
+.v91-ticket .id{
+  font-family:'JetBrains Mono','Noto Sans TC',monospace;
+  color:var(--accent);
+  font-size:.7rem;
+  font-weight:900;
+}
+.v91-ticket .main{
+  color:var(--text);
+  font-size:.78rem;
+  font-weight:800;
+  line-height:1.45;
+  margin-top:4px;
+}
+.v91-ticket .sub{
+  color:var(--text3);
+  font-size:.68rem;
+  line-height:1.45;
+  margin-top:4px;
+}
+.v91-action-list{
+  display:grid;
+  gap:10px;
+}
+.v91-action{
+  display:grid;
+  grid-template-columns:34px 1fr auto;
+  gap:10px;
+  align-items:center;
+  padding:11px 12px;
+  border:1px solid var(--border);
+  border-radius:15px;
+  background:rgba(255,253,249,.72);
+}
+.v91-action-icon{
+  width:34px;
+  height:34px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--surface2);
+}
+.v91-action-title{
+  font-size:.8rem;
+  font-weight:900;
+  color:var(--text);
+}
+.v91-action-sub{
+  font-size:.68rem;
+  color:var(--text3);
+  line-height:1.45;
+  margin-top:3px;
+}
+.v91-action-count{
+  font-family:'JetBrains Mono','Noto Sans TC',monospace;
+  font-size:1.05rem;
+  font-weight:900;
+  color:var(--red);
+}
+.v91-mini-table{
+  overflow:auto;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:var(--surface);
+}
+.v91-mini-table table{
+  min-width:760px;
+}
+.v91-mini-table th,
+.v91-mini-table td{
+  padding:11px 13px;
+}
+.v91-empty{
+  padding:26px;
+  text-align:center;
+  color:var(--text3);
+  font-size:.82rem;
+}
+
+/* ---------- V91: MRP page hierarchy polish ---------- */
+#page-mrp{
+  max-width:1360px!important;
+  margin:0 auto!important;
+}
+#page-mrp .page-header{
+  margin-bottom:18px!important;
+}
+#page-mrp .page-title{
+  font-size:1.65rem!important;
+  letter-spacing:-.45px!important;
+}
+#page-mrp .page-subtitle{
+  max-width:780px!important;
+  line-height:1.75!important;
+}
+#page-mrp .mrp-hero{
+  border-radius:24px!important;
+  padding:22px!important;
+  background:
+    linear-gradient(135deg,rgba(255,253,249,.96),rgba(239,231,223,.78)),
+    radial-gradient(circle at 90% 0%,rgba(127,139,134,.16),transparent 34%)!important;
+}
+#page-mrp .mrp-hero-top{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 230px!important;
+  gap:20px!important;
+  align-items:start!important;
+}
+#page-mrp .mrp-title{
+  font-size:1.18rem!important;
+  font-weight:900!important;
+  color:var(--text)!important;
+}
+#page-mrp .mrp-desc{
+  line-height:1.85!important;
+}
+#page-mrp .mrp-flow span{
+  background:rgba(255,253,249,.78)!important;
+  border-color:var(--border)!important;
+}
+#page-mrp .mrp-kpi-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:13px!important;
+}
+#page-mrp .mrp-kpi{
+  border-radius:18px!important;
+  min-height:102px!important;
+}
+#page-mrp .mrp-toolbar{
+  display:grid!important;
+  grid-template-columns:minmax(240px,1fr) 180px auto!important;
+  gap:10px!important;
+}
+#page-mrp .mrp-toolbar input,
+#page-mrp .mrp-toolbar select{
+  max-width:none!important;
+}
+#page-mrp .mrp-board{
+  grid-template-columns:minmax(0,1.18fr) minmax(360px,.82fr)!important;
+  gap:16px!important;
+}
+#page-mrp .mrp-card{
+  border-radius:20px!important;
+}
+#page-mrp .mrp-table table{
+  min-width:820px!important;
+}
+@media(max-width:1200px){
+  .v91-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .v91-hero-inner,.v91-work-grid,#page-mrp .mrp-hero-top,#page-mrp .mrp-board{grid-template-columns:1fr!important;}
+  .v91-lanes{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:800px){
+  .v91-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .v91-lanes{grid-template-columns:1fr;}
+  #page-mrp .mrp-toolbar{grid-template-columns:1fr!important;}
+  #page-mrp .mrp-kpi-grid{grid-template-columns:1fr!important;}
+}
+@media(max-width:560px){
+  .v91-kpi-grid{grid-template-columns:1fr;}
+}
+</style>
+
+<script id="v91-pmc-stable-script">
+(function(){
+  'use strict';
+  if(window.__V91_PMC_STABLE__) return;
+  window.__V91_PMC_STABLE__ = true;
+
+  const W = window;
+  const D = document;
+  const A = v => Array.isArray(v) ? v : [];
+  const S = v => String(v == null ? '' : v).trim();
+  const L = v => S(v).toLowerCase();
+  const N = v => Number(v || 0) || 0;
+  const E = v => S(v).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  const MENU = [
+    {label:'PMC 核心流程', items:[
+      ['dashboard','🧭','PMC 工作台','dashboard','pmc'],
+      ['forecast-admin','📈','Forecast / 需求審核','forecast-admin','forecast'],
+      ['orders','📋','正式訂單','orders','orders'],
+      ['mrp','🧠','MRP / 缺料計算','mrp','mrp'],
+      ['purchasing','🛒','採購 / 委外','purchasing-v68','purchasing'],
+      ['plan','⚙️','製程排程','plan','plan'],
+      ['gantt','🗓️','甘特圖','gantt',''],
+      ['delivery','🚚','出貨追蹤','delivery','delivery'],
+      ['billing','💰','Invoice / AR','billing','billing'],
+      ['profit','📊','成本 / 毛利','profit','']
+    ]},
+    {label:'主檔與版本', items:[
+      ['products','📦','產品主檔','products',''],
+      ['boms','🧱','BOM 結構','boms',''],
+      ['routes','🛣️','製程路線','routes',''],
+      ['version-control','🧬','BOM / Route 版本','version-control',''],
+      ['stock','📦','庫存現況','stock','stock'],
+      ['ledger','📒','庫存流水帳','ledger','']
+    ]},
+    {label:'往來對象', items:[
+      ['clients','👤','客戶資料','customers-admin',''],
+      ['alliances','🏭','廠商資料','alliances',''],
+      ['companies','🏢','公司 / 帳戶','companies','']
+    ]},
+    {label:'管理與檢查', items:[
+      ['data-health','🩺','資料健康檢查','data-health','health'],
+      ['pmc-control','🚦','PMC 風險中心','pmc-control','risk'],
+      ['docflow','📄','文件流中心','docflow','docflow'],
+      ['approvals','✅','帳戶審核','approvals','approvals'],
+      ['approval-flow','🛡️','流程審核中心','approval-flow','approvalFlow'],
+      ['daily-report','📅','日報表','daily-report',''],
+      ['weekly-report','🗓️','週報表','weekly-report',''],
+      ['month-report','📈','月報表','month-report','']
+    ]}
+  ];
+
+  function alias(p){
+    return ({
+      finance:'billing',
+      procurement:'purchasing-v68',
+      procure:'purchasing-v68',
+      purchasing:'purchasing-v68',
+      clients:'customers-admin',
+      'order-control':'orders',
+      'document-flow':'docflow',
+      'pmc-v47-docflow':'docflow',
+      'pmc-v49-core':'version-control'
+    })[p] || p || 'dashboard';
+  }
+
+  let currentPage = 'dashboard';
+  let originalShowPage = null;
+
+  function db(){ return W.DB || {}; }
+  function done(st){
+    const x = L(st);
+    return ['done','complete','completed','closed','finish','finished','paid','void','cancelled','canceled','rejected','deleted','archived','converted','approved','released','received','delivered','shipped','完成','已完成','結案','已結案','已出貨','已交貨','已送達','已收貨','已核准','核准','已轉單','已轉正式訂單','作廢','取消','已取消','退回','駁回','已付款'].includes(x);
+  }
+  function pendingForecast(f){
+    const st = L(f.status || f.approvalStatus || f.reviewStatus || 'submitted');
+    if(st === 'draft' || st === '草稿') return false;
+    return !done(st);
+  }
+  function openOrder(o){
+    return !done(o.status || o.orderStatus || o.progressStatus) && !o.completedAt && !o.finishedAt && !o.deliveredAt && !o.cancelledAt;
+  }
+  function unpaidInvoice(i){
+    return !done(i.status || i.paymentStatus || i.arStatus) && !i.paidAt && !i.voidedAt;
+  }
+  function shortageCount(){
+    const d = db();
+    let n = A(d.mrpShortages).filter(x => !done(x.status)).length
+      || A(d.shortages).filter(x => !done(x.status)).length
+      || A(d.materialShortages).filter(x => !done(x.status)).length;
+    if(!n){
+      n = A(d.orders).filter(o => openOrder(o) && (
+        N(o.mrp && o.mrp.bomShortageCount) > 0 ||
+        (N(o.qty || o.orderQty || o.quantity) > 0 && N(o.qty || o.orderQty || o.quantity) > N(o.stock || o.stockQty || o.availableQty || 0))
+      )).length;
+    }
+    return n;
+  }
+  function planPendingCount(){
+    const d = db();
+    const rows = A(d.processSchedules).length ? A(d.processSchedules) : A(d.vendorAssignments);
+    return rows.filter(r => !done(r.status) && !r.completedAt && !r.finishedAt && !r.actualFinishDate).length;
+  }
+  function purchasingPendingCount(){
+    const d = db();
+    return A(d.purchaseRequests).filter(x => !done(x.status)).length
+      + A(d.purchaseOrders).filter(x => !done(x.status)).length
+      + A(d.outsourceOrders || d.subcontractOrders).filter(x => !done(x.status)).length;
+  }
+  function deliveryPendingCount(){
+    const d = db();
+    return A(d.shipments).filter(x => !done(x.status)).length
+      + A(d.deliveryNotes).filter(x => !done(x.status)).length
+      + A(d.orders).filter(o => openOrder(o) && ['ready','ready_to_ship','待出貨','可出貨','出貨中'].includes(L(o.status))).length;
+  }
+  function docflowPendingCount(){
+    const d = db();
+    return A(d.packingLists).filter(x => !done(x.status)).length
+      + A(d.deliveryNotes).filter(x => !done(x.status)).length
+      + A(d.invoices).filter(unpaidInvoice).length;
+  }
+  function healthIssues(){
+    const d = db();
+    const issues = [];
+    A(d.healthIssues).filter(x => !done(x.status)).forEach(x => issues.push({
+      type:x.type || '資料異常',
+      target:x.target || x.id || '—',
+      memo:x.memo || x.message || '需要確認資料完整性',
+      level:x.level || 'warning'
+    }));
+
+    const products = A(d.products);
+    const boms = A(d.boms);
+    const routes = A(d.routes || d.processRoutes);
+    A(d.orders).filter(o => openOrder(o) && !S(o.productId)).forEach(o => issues.push({
+      type:'訂單未綁產品',
+      target:o.id || o.orderNo || '—',
+      memo:'訂單沒有 productId，MRP 無法正確抓 BOM。',
+      level:'critical'
+    }));
+    products.forEach(p => {
+      const pid = S(p.id);
+      const pname = S(p.name);
+      const hasBom = boms.some(b => S(b.productId || b.product || b.productName) === pid || S(b.productName) === pname);
+      const hasRoute = routes.some(r => S(r.productId || r.product || r.productName) === pid || S(r.productName) === pname);
+      if(!hasBom) issues.push({type:'產品未綁 BOM', target:p.name || p.id || '—', memo:'產品主檔缺 BOM，無法展開缺料。', level:'critical'});
+      if(!hasRoute) issues.push({type:'產品未綁 Route', target:p.name || p.id || '—', memo:'產品主檔缺製程路線，無法自動排程。', level:'warning'});
+    });
+    return issues;
+  }
+  function counts(){
+    const d = db();
+    const health = healthIssues().length;
+    const shortage = shortageCount();
+    return {
+      pmc: A(d.orders).filter(openOrder).length + shortage + health,
+      forecast: A(d.forecasts).filter(pendingForecast).length,
+      orders: A(d.orders).filter(openOrder).length,
+      mrp: shortage,
+      purchasing: purchasingPendingCount(),
+      plan: planPendingCount(),
+      delivery: deliveryPendingCount(),
+      billing: A(d.invoices).filter(unpaidInvoice).length,
+      stock: A(d.stockAlerts).filter(x => !done(x.status)).length || shortage,
+      health,
+      risk: health + shortage + deliveryPendingCount(),
+      docflow: docflowPendingCount(),
+      approvals: A(d.accountRequests || d.pendingUsers).filter(x => !done(x.status || x.approvalStatus || 'pending')).length,
+      approvalFlow: A(d.approvalRequests).filter(x => !done(x.status || 'pending')).length
+    };
+  }
+
+  function menuHTML(){
+    return '<div class="v86-note"><strong>v91 PMC Flow</strong><br>固定主選單・真實任務數・不拖曳不閃動</div>' +
+      MENU.map((sec, idx) => {
+        const items = sec.items.map(i => {
+          const key = E(i[0]), icon = i[1], text = E(i[2]), page = E(i[3]), badge = E(i[4] || '');
+          return `<div class="v86-item" data-v91-key="${key}" data-v86="${key}" data-page="${page}" data-badge="${badge}">
+            <span class="v86-icon">${icon}</span><span class="v86-text">${text}</span><span class="v86-badge"></span>
+          </div>`;
+        }).join('');
+        return `<div class="v86-section"><div class="v86-label">${E(sec.label)}</div>${items}</div>${idx < MENU.length - 1 ? '<div class="v86-sep"></div>' : ''}`;
+      }).join('');
+  }
+
+  function hideLegacySidebars(){
+    D.querySelectorAll('.app > aside.sidebar:not(#sidebar-v86), #sidebar-admin:not(#sidebar-v86), #sidebar-client:not(#sidebar-v86), #sidebar-vendor:not(#sidebar-v86), #sidebar-v85').forEach(el => {
+      el.style.cssText += ';display:none!important;visibility:hidden!important;width:0!important;min-width:0!important;max-width:0!important;height:0!important;overflow:hidden!important;opacity:0!important;';
+    });
+  }
+
+  function ensureSidebar(force){
+    const app = D.querySelector('.app');
+    if(!app) return;
+    let sb = D.getElementById('sidebar-v86');
+    if(!sb){
+      sb = D.createElement('aside');
+      sb.id = 'sidebar-v86';
+      sb.className = 'sidebar';
+      const main = app.querySelector('.main') || app.firstChild;
+      app.insertBefore(sb, main);
+    }
+    if(force || !sb.__v91Menu){
+      sb.innerHTML = menuHTML();
+      sb.__v91Menu = true;
+      bindSidebar(sb);
+    }
+    hideLegacySidebars();
+    setActive(currentPage);
+    refreshBadges();
+  }
+
+  function bindSidebar(sb){
+    if(sb.__v91Bound) return;
+    sb.__v91Bound = true;
+    sb.addEventListener('click', e => {
+      const item = e.target.closest('.v86-item');
+      if(!item) return;
+      const page = alias(item.dataset.page);
+      showPageV91(page, item);
+    });
+  }
+
+  function setActive(page){
+    currentPage = alias(page);
+    const sb = D.getElementById('sidebar-v86');
+    if(!sb) return;
+    sb.querySelectorAll('.v86-item').forEach(it => {
+      it.classList.toggle('active', alias(it.dataset.page) === currentPage);
+    });
+  }
+
+  function refreshBadges(){
+    const c = counts();
+    const sb = D.getElementById('sidebar-v86');
+    if(!sb) return;
+    sb.querySelectorAll('.v86-item').forEach(it => {
+      const key = it.dataset.badge;
+      const b = it.querySelector('.v86-badge');
+      if(!b) return;
+      const n = key ? (c[key] || 0) : 0;
+      b.textContent = n ? String(n) : '';
+      b.classList.toggle('on', n > 0);
+    });
+  }
+
+  function disableOldSidebarTools(){
+    ['SidebarSortV54MRP','V48Core','V49Core','V46Core','V52Nav','V72Sidebar','V74Sidebar','V85Sidebar','V86Sidebar'].forEach(ns => {
+      if(W[ns] && typeof W[ns] === 'object'){
+        ['enable','reset','init','rebuildAdminMenu','enhanceAll','savePMCMenuOrder','resetPMCMenuOrder'].forEach(k => {
+          try{ W[ns][k] = function(){}; }catch(_){}
+        });
+      }
+    });
+    ['rebuildAdminMenu','savePMCMenuOrder','resetPMCMenuOrder','initSidebarSort'].forEach(k => {
+      if(typeof W[k] === 'function') {
+        try{ W[k] = function(){}; }catch(_){}
+      }
+    });
+  }
+
+  function getClientNameSafe(id, fallback){
+    try{ return W.getClientName ? (W.getClientName(id) || fallback || id || '—') : (fallback || id || '—'); }catch(_){ return fallback || id || '—'; }
+  }
+  function fmtDate(x){ return S(x || '').slice(0,10) || '未填'; }
+  function topRows(arr, n){ return A(arr).slice(0, n); }
+
+  function getOrderTitle(o){
+    return S(o.product || o.productName || o.itemName || o.productId || '未綁產品');
+  }
+
+  function renderDashboard(){
+    const page = D.getElementById('page-dashboard');
+    if(!page || page.__v91Dashboard) return;
+    page.__v91Dashboard = true;
+    const c = counts();
+    const risk = Math.min(100, c.health * 18 + c.mrp * 16 + c.delivery * 8 + c.billing * 5);
+    const healthScore = Math.max(0, 100 - risk);
+    const d = db();
+    const pendingForecasts = A(d.forecasts).filter(pendingForecast);
+    const openOrders = A(d.orders).filter(openOrder);
+    const healthList = healthIssues();
+
+    function lane(title, icon, rows, type){
+      const body = topRows(rows, 3).map(x => {
+        const id = E(x.id || x.orderNo || x.forecastNo || x.invoiceNo || '—');
+        const main = E(type === 'health' ? (x.type || '資料異常') : type === 'invoice' ? (x.customer || x.client || x.clientId || '未填客戶') : getOrderTitle(x));
+        const sub = E(type === 'health' ? (x.memo || '需要確認') : type === 'forecast' ? ('客戶：' + getClientNameSafe(x.clientId, x.client || '—') + '｜需求日：' + fmtDate(x.targetDate || x.delivery || x.dueDate)) : type === 'invoice' ? ('狀態：' + S(x.status || x.paymentStatus || '未收款')) : ('交期：' + fmtDate(x.delivery || x.dueDate || x.shipDate)));
+        return `<div class="v91-ticket"><div class="id">${id}</div><div class="main">${main}</div><div class="sub">${sub}</div></div>`;
+      }).join('') || '<div class="v91-empty">目前無待處理</div>';
+      return `<div class="v91-lane"><div class="v91-lane-head"><span>${icon} ${E(title)}</span><span class="v91-lane-count">${rows.length}</span></div>${body}</div>`;
+    }
+
+    const actions = [
+      ['📈','Forecast 待審核', c.forecast, '先確認需求是否轉正式訂單', 'forecast-admin'],
+      ['🧠','MRP 缺料', c.mrp, '優先處理缺料與客供料到料', 'mrp'],
+      ['🛒','採購 / 委外未結', c.purchasing, '追蹤 PR、PO、委外單狀態', 'purchasing-v68'],
+      ['🚚','出貨待處理', c.delivery, '確認 Packing、交貨與客戶狀態', 'delivery'],
+      ['💰','Invoice 未收款', c.billing, '追蹤 AR 與付款狀態', 'billing'],
+      ['🩺','資料異常', c.health, '補齊 productId、BOM、Route', 'data-health']
+    ].filter(a => a[2] > 0);
+
+    page.innerHTML = `
+      <div class="v91-tower">
+        <div class="v91-hero">
+          <div class="v91-hero-inner">
+            <div>
+              <div class="v91-kicker">PMC Control Tower · v91 Stable</div>
+              <div class="v91-title">從 Forecast 到收款，一張工作台看完今日最該處理的事。</div>
+              <div class="v91-desc">這一版把流程收斂成 Forecast → 訂單 → MRP → 採購/委外 → 生產 → 出貨 → Invoice/AR，主選單固定、不拖曳、不重複渲染，badge 只顯示真實待處理任務數。</div>
+              <div class="v91-flow">
+                <span>① Forecast</span><span>② 正式訂單</span><span>③ BOM / MRP</span><span>④ 採購委外</span><span>⑤ 生產排程</span><span>⑥ 出貨文件</span><span>⑦ Invoice / AR</span>
+              </div>
+            </div>
+            <div class="v91-health-card">
+              <div class="v91-health-top"><span>系統健康度</span><span>${healthScore >= 80 ? '穩定' : healthScore >= 55 ? '注意' : '高風險'}</span></div>
+              <div class="v91-health-bar"><div class="v91-health-fill" style="width:${100-healthScore}%"></div></div>
+              <div class="v91-health-score">${healthScore}</div>
+              <div class="v91-desc" style="font-size:.76rem;margin-top:4px">分數越低代表缺料、資料異常或逾期越多。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="v91-kpi-grid">
+          <div class="v91-kpi"><div class="label">Forecast</div><div class="value">${c.forecast}</div><div class="sub">待審核 / 待轉單</div></div>
+          <div class="v91-kpi"><div class="label">Open Orders</div><div class="value">${c.orders}</div><div class="sub">尚未結案訂單</div></div>
+          <div class="v91-kpi"><div class="label">MRP Shortage</div><div class="value">${c.mrp}</div><div class="sub">缺料 / 客供短少</div></div>
+          <div class="v91-kpi"><div class="label">Purchasing</div><div class="value">${c.purchasing}</div><div class="sub">採購 / 委外未結</div></div>
+          <div class="v91-kpi"><div class="label">Delivery</div><div class="value">${c.delivery}</div><div class="sub">待出貨 / 待文件</div></div>
+          <div class="v91-kpi"><div class="label">AR</div><div class="value">${c.billing}</div><div class="sub">Invoice 未收款</div></div>
+        </div>
+
+        <div class="v91-work-grid">
+          <div class="v91-panel">
+            <div class="v91-panel-title"><span>流程看板</span><button class="btn btn-outline btn-sm" onclick="refreshAll && refreshAll()">重新整理</button></div>
+            <div class="v91-lanes">
+              ${lane('Forecast', '📈', pendingForecasts, 'forecast')}
+              ${lane('訂單', '📋', openOrders, 'order')}
+              ${lane('MRP', '🧠', A(d.mrpShortages).filter(x=>!done(x.status)), 'order')}
+              ${lane('出貨', '🚚', A(d.shipments).filter(x=>!done(x.status)), 'order')}
+              ${lane('異常', '🩺', healthList, 'health')}
+            </div>
+          </div>
+          <div class="v91-panel">
+            <div class="v91-panel-title"><span>今日優先處理</span><span class="pill ${actions.length ? 'pill-red' : 'pill-green'}">${actions.length ? '有待辦' : '穩定'}</span></div>
+            <div class="v91-action-list">
+              ${actions.map(a => `<div class="v91-action" onclick="showPage('${E(a[4])}', document.querySelector('#sidebar-v86 .v86-item[data-page=\\'${E(a[4])}\\']'))" style="cursor:pointer">
+                <div class="v91-action-icon">${a[0]}</div>
+                <div><div class="v91-action-title">${E(a[1])}</div><div class="v91-action-sub">${E(a[3])}</div></div>
+                <div class="v91-action-count">${a[2]}</div>
+              </div>`).join('') || '<div class="v91-empty">目前沒有高優先待辦。</div>'}
+            </div>
+          </div>
+        </div>
+
+        <div class="v91-panel">
+          <div class="v91-panel-title"><span>資料健康檢查摘要</span><button class="btn btn-outline btn-sm" onclick="showPage('data-health', document.querySelector('#sidebar-v86 .v86-item[data-page=\\'data-health\\']'))">查看全部</button></div>
+          <div class="v91-mini-table">
+            <table>
+              <thead><tr><th>等級</th><th>類型</th><th>對象</th><th>處理建議</th></tr></thead>
+              <tbody>
+                ${topRows(healthList, 8).map(x => `<tr><td><span class="pill ${x.level==='critical'?'pill-red':'pill-yellow'}">${x.level==='critical'?'急件':'注意'}</span></td><td>${E(x.type)}</td><td>${E(x.target)}</td><td>${E(x.memo)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">資料健康狀態良好。</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function polishMRP(){
+    const page = D.getElementById('page-mrp');
+    if(!page) return;
+    const title = page.querySelector('.page-title');
+    if(title) title.textContent = 'MRP / 缺料計算中心';
+    const subtitle = page.querySelector('.page-subtitle');
+    if(subtitle) subtitle.textContent = '選訂單或 Forecast 後展開 BOM，扣公司庫存與客供料，輸出缺口、採購建議與客供追蹤。';
+    const btn = page.querySelector('.mrp-hero-top .btn-primary');
+    if(btn) btn.textContent = '產生採購 / 客供建議';
+    const table = page.querySelector('.mrp-table');
+    if(table && !table.getAttribute('aria-label')) table.setAttribute('aria-label','MRP 缺料明細');
+  }
+
+  function showPageV91(page, el){
+    const p = alias(page);
+    currentPage = p;
+    let result;
+    try{
+      if(typeof originalShowPage === 'function') result = originalShowPage.call(W, p, el);
+    }catch(err){
+      console.warn('[v91] original showPage skipped:', err);
+    }
+    setActive(p);
+    if(p === 'dashboard') setTimeout(renderDashboard, 30);
+    if(p === 'mrp') setTimeout(polishMRP, 30);
+    setTimeout(() => { ensureSidebar(false); setActive(p); refreshBadges(); }, 90);
+    setTimeout(() => { ensureSidebar(false); setActive(p); refreshBadges(); }, 280);
+    return result;
+  }
+
+  function boot(){
+    if(!originalShowPage && typeof W.showPage === 'function' && W.showPage !== showPageV91) originalShowPage = W.showPage;
+    W.showPage = showPageV91;
+    disableOldSidebarTools();
+    ensureSidebar(true);
+    renderDashboard();
+    polishMRP();
+    refreshBadges();
+    setTimeout(() => { disableOldSidebarTools(); ensureSidebar(false); refreshBadges(); }, 300);
+    setTimeout(() => { disableOldSidebarTools(); ensureSidebar(false); refreshBadges(); }, 900);
+  }
+
+  W.refreshSidebarBadges = refreshBadges;
+  W.refreshTaskBadgesV91 = refreshBadges;
+  W.rebuildV91Sidebar = () => ensureSidebar(true);
+  D.addEventListener('click', () => setTimeout(refreshBadges, 120), true);
+  D.addEventListener('change', () => setTimeout(refreshBadges, 120), true);
+
+  if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot, {once:true});
+  else boot();
+})();
+</script>
+
+
+<!-- ══════════════════════════════
+     V92 THREE ROLE VIEW RESTORE
+══════════════════════════════ -->
+<style id="v92-three-role-style">
+.v92-role-home{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-bottom:20px}.v92-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px;box-shadow:0 14px 34px rgba(95,82,72,.07)}.v92-card h3{font-size:.95rem;margin-bottom:10px;color:var(--text)}.v92-flow{display:grid;gap:10px}.v92-flow-step{display:grid;grid-template-columns:34px 1fr auto;gap:10px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px}.v92-num{width:28px;height:28px;border-radius:999px;background:var(--accent-glow);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:.72rem}.v92-flow-title{font-weight:800;font-size:.82rem}.v92-flow-sub{font-size:.72rem;color:var(--text3);margin-top:3px;line-height:1.5}.v92-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.v92-mini-kpi{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:13px}.v92-mini-kpi .label{font-size:.68rem;color:var(--text3);margin-bottom:6px}.v92-mini-kpi .value{font-family:'JetBrains Mono',monospace;font-size:1.28rem;font-weight:800;color:var(--text)}.v92-info-line{font-size:.78rem;color:var(--text2);line-height:1.8}.v92-role-chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);background:rgba(255,253,249,.68);border-radius:999px;padding:5px 10px;font-size:.72rem;color:var(--text2);margin:3px}.v92-sidebar-title{padding:0 18px 14px;color:var(--text2);font-size:.76rem;line-height:1.6}.v92-sidebar-title strong{display:block;color:var(--text);font-size:.86rem;margin-bottom:2px}.v92-locked-note{font-size:.7rem;color:var(--text3);padding:10px 18px;line-height:1.6}.v92-client-only .admin-only,.v92-vendor-only .admin-only{display:none!important}@media(max-width:900px){.v92-role-home{grid-template-columns:1fr}}
+</style>
+<script id="v92-three-role-script">
+(function(){
+  const G=window;
+  function countOrders(role){
+    const u=G.getCurrentUser?G.getCurrentUser():{role:'admin'};
+    const orders=(G.DB&&G.DB.orders)||[];
+    if(role==='client') return orders.filter(o=>!u.clientId||o.clientId===u.clientId||o.client===u.company||o.customer===u.company).length;
+    if(role==='vendor') return orders.filter(o=>!u.vendorId||o.vendor===u.vendorId||o.vendorId===u.vendorId).length;
+    return orders.length;
+  }
+  function pendingForecast(){return ((G.DB&&G.DB.forecasts)||[]).filter(f=>['待審核','pending','新需求'].includes(f.status||'待審核')).length;}
+  function notDoneOrders(){return ((G.DB&&G.DB.orders)||[]).filter(o=>!['已交貨','結案','已結案','完成'].includes(o.status||'')).length;}
+  function shortageCount(){return ((G.DB&&G.DB.orders)||[]).filter(o=>Number(o.stock||0)<Number(o.qty||0)||o.status==='缺料').length;}
+  function setBadges(){
+    const set=(id,n)=>{const el=document.getElementById(id);if(el){el.textContent=String(n);el.style.display=n>0?'inline-flex':'none';}};
+    set('forecast-badge',pendingForecast()); set('orders-badge',notDoneOrders()); set('mrp-badge',shortageCount());
+    set('v92-client-forecast-badge',pendingForecast()); set('v92-client-order-badge',countOrders('client')); set('v92-vendor-task-badge',countOrders('vendor'));
+  }
+  function replaceSidebars(){
+    const client=document.getElementById('sidebar-client');
+    if(client) client.innerHTML=`
+      <div class="v92-sidebar-title"><strong>👤 客戶工作台</strong>只看自己的 Forecast、訂單進度、交貨與公開留言；不顯示廠商名稱與內部成本。</div>
+      <div class="sidebar-section"><div class="sidebar-label">客戶流程</div>
+        <div class="sidebar-item active" data-page="client-home" onclick="showPage('client-home', this)"><span class="icon">🏠</span><span class="nav-text">客戶總覽</span></div>
+        <div class="sidebar-item" data-page="client-forecast" onclick="showPage('client-forecast', this)"><span class="icon">📈</span><span class="nav-text">提交 Forecast</span><span class="badge" id="v92-client-forecast-badge">0</span></div>
+        <div class="sidebar-item" data-page="client-orders" onclick="showPage('client-orders', this)"><span class="icon">📦</span><span class="nav-text">訂單進度</span><span class="badge" id="v92-client-order-badge">0</span></div>
+        <div class="sidebar-item" data-page="client-delivery" onclick="showPage('client-delivery', this)"><span class="icon">🚚</span><span class="nav-text">交貨 / 文件</span></div>
+      </div>
+      <div class="v92-locked-note">🔒 客戶端只顯示可公開狀態：已收單、備料中、生產中、待出貨、已出貨。</div>`;
+    const vendor=document.getElementById('sidebar-vendor');
+    if(vendor) vendor.innerHTML=`
+      <div class="v92-sidebar-title"><strong>🏭 廠商工作台</strong>只看被分派的製程、交期、數量與可回報欄位；不顯示客戶完整資訊與報價毛利。</div>
+      <div class="sidebar-section"><div class="sidebar-label">廠商流程</div>
+        <div class="sidebar-item active" data-page="vendor-home" onclick="showPage('vendor-home', this)"><span class="icon">🏠</span><span class="nav-text">廠商總覽</span></div>
+        <div class="sidebar-item" data-page="vendor-tasks" onclick="showPage('vendor-tasks', this)"><span class="icon">⚙️</span><span class="nav-text">我的任務</span><span class="badge" id="v92-vendor-task-badge">0</span></div>
+        <div class="sidebar-item" data-page="vendor-gantt" onclick="showPage('vendor-gantt', this)"><span class="icon">📅</span><span class="nav-text">我的排程</span></div>
+        <div class="sidebar-item" data-page="vendor-updates" onclick="showPage('vendor-updates', this)"><span class="icon">💬</span><span class="nav-text">回報 / 留言</span></div>
+      </div>
+      <div class="v92-locked-note">🔒 廠商端只能回報進度、預計完成日、異常原因，不可看到其他廠商或客戶成本。</div>`;
+    const admin=document.getElementById('sidebar-admin');
+    if(admin) admin.querySelectorAll('.sidebar-nav-tools,.drag-handle').forEach(el=>el.remove());
+  }
+  function ensurePages(){
+    const main=document.querySelector('main.main'); if(!main||document.getElementById('page-client-home')) return;
+    const html=`
+    <div id="page-client-home" style="display:none">
+      <div class="page-header"><div><div class="page-title">客戶工作台</div><div class="page-subtitle">提交 Forecast、查看自己的訂單進度與公開交貨狀態</div></div><button class="btn btn-primary" onclick="showPage('client-forecast', document.querySelector('#sidebar-client [data-page=client-forecast]'))">＋ 新增 Forecast</button></div>
+      <div class="role-banner client-banner">👤 <strong>客戶視角</strong> — 看得到自己的需求與訂單狀態；看不到廠商名稱、內部備料細節、成本與毛利。</div>
+      <div class="v92-role-home"><div class="v92-card"><h3>客戶流程</h3><div class="v92-flow"><div class="v92-flow-step"><div class="v92-num">01</div><div><div class="v92-flow-title">提交 Forecast</div><div class="v92-flow-sub">選產品、數量、希望交期、是否客供料。</div></div><span class="pill pill-blue">客戶可操作</span></div><div class="v92-flow-step"><div class="v92-num">02</div><div><div class="v92-flow-title">等待審核 / 轉正式訂單</div><div class="v92-flow-sub">管理者確認後，客戶端只顯示公開進度。</div></div><span class="pill pill-yellow">待內部處理</span></div><div class="v92-flow-step"><div class="v92-num">03</div><div><div class="v92-flow-title">追蹤生產與交貨</div><div class="v92-flow-sub">顯示備料、生產、品檢、出貨，不顯示內部廠商鏈。</div></div><span class="pill pill-green">可追蹤</span></div></div></div><div class="v92-card"><h3>我的狀態</h3><div class="v92-kpi-row"><div class="v92-mini-kpi"><div class="label">我的訂單</div><div class="value" id="v92-client-kpi-orders">0</div></div><div class="v92-mini-kpi"><div class="label">待審 Forecast</div><div class="value" id="v92-client-kpi-forecast">0</div></div></div><p class="v92-info-line" style="margin-top:14px">客戶端欄位應保留：產品/料號、數量、交期、狀態、公開備註、客供料預計到料日。</p></div></div>
+    </div>
+    <div id="page-client-forecast" style="display:none">
+      <div class="page-header"><div><div class="page-title">提交 Forecast</div><div class="page-subtitle">客戶下預測需求，管理者審核後才會轉正式訂單</div></div><button class="btn btn-primary" onclick="openModal('forecast')">＋ 新增 Forecast</button></div>
+      <div class="role-banner client-banner">📈 客戶只能建立與查看自己的 Forecast；審核、MRP、採購與廠商分派由管理者處理。</div>
+      <div class="table-wrap"><table><thead><tr><th>Forecast</th><th>產品 / 料號</th><th>數量</th><th>希望交期</th><th>客供料</th><th>狀態</th></tr></thead><tbody id="v92-client-forecast-tbody"></tbody></table></div>
+    </div>
+    <div id="page-vendor-home" style="display:none">
+      <div class="page-header"><div><div class="page-title">廠商工作台</div><div class="page-subtitle">查看被分派的任務、排程與回報進度</div></div><button class="btn btn-primary" onclick="showPage('vendor-tasks', document.querySelector('#sidebar-vendor [data-page=vendor-tasks]'))">查看任務</button></div>
+      <div class="role-banner vendor-banner">🏭 <strong>廠商視角</strong> — 只顯示自己的製程任務與交期，不顯示客戶完整資料、其他廠商與內部財務。</div>
+      <div class="v92-role-home"><div class="v92-card"><h3>廠商流程</h3><div class="v92-flow"><div class="v92-flow-step"><div class="v92-num">01</div><div><div class="v92-flow-title">收到製程任務</div><div class="v92-flow-sub">依訂單工序分派，只看到與自己有關的數量與交期。</div></div><span class="pill pill-blue">派工</span></div><div class="v92-flow-step"><div class="v92-num">02</div><div><div class="v92-flow-title">回報進度 / 異常</div><div class="v92-flow-sub">填寫完成數、預計完成日、異常原因，可同步給客戶公開狀態。</div></div><span class="pill pill-yellow">回報</span></div><div class="v92-flow-step"><div class="v92-num">03</div><div><div class="v92-flow-title">完成交付</div><div class="v92-flow-sub">管理者確認後進入下一製程或出貨。</div></div><span class="pill pill-green">完成</span></div></div></div><div class="v92-card"><h3>任務狀態</h3><div class="v92-kpi-row"><div class="v92-mini-kpi"><div class="label">我的任務</div><div class="value" id="v92-vendor-kpi-tasks">0</div></div><div class="v92-mini-kpi"><div class="label">進行中</div><div class="value" id="v92-vendor-kpi-active">0</div></div></div><p class="v92-info-line" style="margin-top:14px">廠商端欄位應保留：任務號、製程、數量、交期、進度、回報留言、附件。</p></div></div>
+    </div>
+    <div id="page-vendor-updates" style="display:none">
+      <div class="page-header"><div><div class="page-title">回報 / 留言</div><div class="page-subtitle">廠商只回報自己的任務進度與異常</div></div></div>
+      <div class="v92-card"><p class="v92-info-line">這裡下一步可接：任務回報表單、公開給客戶的留言開關、內部留言、附件上傳、修改紀錄。</p><div id="vendor-updates-list" style="margin-top:12px"></div></div>
+    </div>`;
+    main.insertAdjacentHTML('beforeend', html);
+  }
+  function renderClientForecastV92(){
+    const tb=document.getElementById('v92-client-forecast-tbody'); if(!tb)return;
+    const rows=((G.DB&&G.DB.forecasts)||[]);
+    tb.innerHTML=rows.map(f=>`<tr><td>${f.id||'—'}</td><td>${f.product||f.productName||f.productId||'—'}</td><td>${Number(f.qty||0).toLocaleString()}</td><td>${f.delivery||f.dueDate||'—'}</td><td>${f.customerSupply?'是':'—'}</td><td>${G.pill?G.pill(f.status||'待審核'):(f.status||'待審核')}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">目前沒有 Forecast</td></tr>';
+  }
+  function renderRoleHome(){
+    const c1=document.getElementById('v92-client-kpi-orders'); if(c1)c1.textContent=countOrders('client');
+    const c2=document.getElementById('v92-client-kpi-forecast'); if(c2)c2.textContent=pendingForecast();
+    const v1=document.getElementById('v92-vendor-kpi-tasks'); if(v1)v1.textContent=countOrders('vendor');
+    const v2=document.getElementById('v92-vendor-kpi-active'); if(v2)v2.textContent=countOrders('vendor');
+  }
+  const oldSync=G.syncRoleUI;
+  G.syncRoleUI=function(){ if(oldSync) oldSync.apply(this,arguments); replaceSidebars(); ensurePages(); setBadges(); document.body.classList.toggle('v92-client-only',(G.getCurrentUser&&G.getCurrentUser().role)==='client'); document.body.classList.toggle('v92-vendor-only',(G.getCurrentUser&&G.getCurrentUser().role)==='vendor'); };
+  const oldShow=G.showPage;
+  G.showPage=function(name,el){ ensurePages(); if(oldShow) oldShow.call(this,name,el); if(name==='client-home'||name==='vendor-home')renderRoleHome(); if(name==='client-forecast')renderClientForecastV92(); setBadges(); };
+  const oldSwitch=G.switchAccount;
+  G.switchAccount=function(userId){ if(oldSwitch) oldSwitch.apply(this,arguments); const u=G.getCurrentUser?G.getCurrentUser():{}; if(u.role==='client') G.showPage('client-home',document.querySelector('#sidebar-client [data-page=client-home]')); if(u.role==='vendor') G.showPage('vendor-home',document.querySelector('#sidebar-vendor [data-page=vendor-home]')); if(u.role==='admin') G.showPage('dashboard',document.querySelector('#sidebar-admin [data-page=dashboard]')); };
+  document.addEventListener('DOMContentLoaded',()=>{replaceSidebars();ensurePages();setBadges();renderRoleHome();});
+})();
+</script>
+
+
+<!-- V93 ROLE SIDEBAR CLEAN FIX -->
+<style id="v93-role-sidebar-clean-style">
+.sidebar-nav-tools,.drag-handle,.sidebar-section.sortable-ready .sidebar-label::after{display:none!important}.sidebar{transition:none!important}body.v93-role-client #sidebar-admin,body.v93-role-client #sidebar-vendor,body.v93-role-vendor #sidebar-admin,body.v93-role-vendor #sidebar-client,body.v93-role-admin #sidebar-client,body.v93-role-admin #sidebar-vendor{display:none!important}body.v93-role-client #sidebar-client,body.v93-role-vendor #sidebar-vendor,body.v93-role-admin #sidebar-admin{display:block!important}body.v93-role-client #btn-new-order,body.v93-role-vendor #btn-new-order{display:none!important}.v93-sidebar-head{padding:0 18px 14px;color:var(--text2);font-size:.76rem;line-height:1.65}.v93-sidebar-head strong{display:block;color:var(--text);font-size:.9rem;margin-bottom:2px}.v93-lock-note{font-size:.7rem;color:var(--text3);padding:11px 18px;line-height:1.65;border-top:1px solid var(--border);margin-top:8px}.v93-admin-note{margin:0 14px 14px 18px;padding:10px 12px;border:1px solid var(--border);border-radius:14px;background:rgba(255,253,249,.62);font-size:.72rem;color:var(--text2);line-height:1.6}
+</style>
+<script id="v93-role-sidebar-clean-script">
+(function(){
+  const G=window,D=document;
+  const CLIENT_PAGES=new Set(['client-home','client-forecast','client-orders','client-delivery']);
+  const VENDOR_PAGES=new Set(['vendor-home','vendor-tasks','vendor-gantt','vendor-updates']);
+  function A(x){return Array.isArray(x)?x:[]} function S(x){return String(x??'').trim()}
+  function done(x){return ['已交貨','結案','已結案','完成','done','closed','paid'].includes(S(x))}
+  function norm(u){if(!u)return null;let r=S(u.role||u.type||u.userRole).toLowerCase();if(['client','customer'].includes(r))r='client';else if(['vendor','supplier'].includes(r))r='vendor';else if(['admin','owner','manager','pmc'].includes(r))r='admin';return {...u,role:r||u.role}}
+  function textRole(){const t=S(D.querySelector('#account-switcher-slot')?.textContent||'');if(/client|客戶/i.test(t))return 'client';if(/vendor|廠商|供應/i.test(t))return 'vendor';if(/admin|管理者/i.test(t))return 'admin';return ''}
+  function user(){let u=null;try{if(typeof G.getCurrentUser==='function')u=G.getCurrentUser()}catch(_){};return norm(u)||norm(G.ACTIVE_USER)||norm(G.CURRENT_USER)||{role:textRole()||G.currentRole||'admin'}}
+  function role(){return user().role||'admin'}
+  function cForecast(){return A(G.DB?.forecasts).filter(f=>['待審核','pending','新需求','draft','submitted'].includes(S(f.status||'待審核'))).length}
+  function cOrders(){return A(G.DB?.orders).filter(o=>!done(o.status)).length}
+  function cShort(){return Math.max(A(G.DB?.stocks).filter(s=>Number(s.need||0)>Number(s.have||0)).length,A(G.DB?.orders).filter(o=>Number(o.stock||0)<Number(o.qty||0)||S(o.status)==='缺料').length)}
+  function cClient(){const u=user(),als=[u.clientId,u.clientCompanyId,u.companyId,u.companyName,u.clientName,u.company,u.name].filter(Boolean).map(S);return A(G.DB?.orders).filter(o=>!als.length||als.includes(S(o.clientId))||als.includes(S(o.clientCompanyId))||als.includes(S(o.client))||als.includes(S(o.customer))).length}
+  function cVendor(){const u=user(),als=[u.vendorId,u.vendorCompanyId,u.companyId,u.companyName,u.vendorName,u.company,u.name].filter(Boolean).map(S);const a=A(G.DB?.vendorAssignments).filter(x=>!als.length||als.includes(S(x.vendorId))||als.includes(S(x.vendorCompanyId))||als.includes(S(x.vendor)));return a.length||A(G.DB?.orders).filter(o=>als.includes(S(o.vendor))||als.includes(S(o.vendorId))||als.includes(S(o.vendorCompanyId))).length}
+  function b(id,n){const e=D.getElementById(id);if(e){e.textContent=String(n);e.style.display=n>0?'inline-flex':'none'}}
+  function badges(){b('forecast-badge',cForecast());b('orders-badge',cOrders());b('mrp-badge',cShort());b('stock-badge',cShort());b('approval-badge',cForecast());b('v93-client-forecast-badge',cForecast());b('v93-client-order-badge',cClient());b('v93-vendor-task-badge',cVendor())}
+  function build(){
+    // ── ADMIN SIDEBAR：強制還原四分組結構 ──
+    const ad=D.getElementById('sidebar-admin');
+    if(ad&&!ad.dataset.v93Clean){
+      ad.dataset.v93Clean='1';
+      ad.innerHTML=`
+        <div class="v93-admin-note"><strong>v93 PMC Flow</strong><br>固定主選單・三方分組・不拖曳不閃動</div>
+        <div class="sidebar-section" data-section="pmc-core">
+          <div class="sidebar-label">PMC 核心流程</div>
+          <div class="sidebar-item active" data-page="dashboard" onclick="showPage('dashboard',this)"><span class="icon">🧭</span><span class="nav-text">PMC 工作台</span></div>
+          <div class="sidebar-item" data-page="forecast-admin" onclick="showPage('forecast-admin',this)"><span class="icon">📈</span><span class="nav-text">Forecast / 需求審核</span><span class="badge" id="forecast-badge">0</span></div>
+          <div class="sidebar-item" data-page="orders" onclick="showPage('orders',this)"><span class="icon">📋</span><span class="nav-text">正式訂單</span><span class="badge" id="orders-badge">0</span></div>
+          <div class="sidebar-item" data-page="mrp" onclick="showPage('mrp',this)"><span class="icon">🧠</span><span class="nav-text">MRP / 缺料計算</span><span class="badge" id="mrp-badge">0</span></div>
+          <div class="sidebar-item" data-page="purchasing" onclick="showPage('purchasing',this)"><span class="icon">🛒</span><span class="nav-text">採購 / 委外</span></div>
+          <div class="sidebar-item" data-page="plan" onclick="showPage('plan',this)"><span class="icon">⚙️</span><span class="nav-text">製程排程</span></div>
+          <div class="sidebar-item" data-page="gantt" onclick="showPage('gantt',this)"><span class="icon">📅</span><span class="nav-text">甘特圖</span></div>
+          <div class="sidebar-item" data-page="delivery" onclick="showPage('delivery',this)"><span class="icon">🚚</span><span class="nav-text">出貨追蹤</span></div>
+          <div class="sidebar-item" data-page="finance" onclick="showPage('finance',this)"><span class="icon">💰</span><span class="nav-text">Invoice / AR</span></div>
+          <div class="sidebar-item" data-page="billing" onclick="showPage('billing',this)"><span class="icon">📊</span><span class="nav-text">成本 / 毛利</span></div>
+        </div>
+        <div class="nav-separator"></div>
+        <div class="sidebar-section" data-section="master">
+          <div class="sidebar-label">主檔資料</div>
+          <div class="sidebar-item" data-page="products" onclick="showPage('products',this)"><span class="icon">📦</span><span class="nav-text">產品主檔</span></div>
+          <div class="sidebar-item" data-page="boms" onclick="showPage('boms',this)"><span class="icon">🧱</span><span class="nav-text">BOM 結構</span></div>
+          <div class="sidebar-item" data-page="routes" onclick="showPage('routes',this)"><span class="icon">🛣️</span><span class="nav-text">製程路線</span></div>
+          <div class="sidebar-item" data-page="alliances" onclick="showPage('alliances',this)"><span class="icon">🏭</span><span class="nav-text">廠商</span></div>
+          <div class="sidebar-item" data-page="clients" onclick="showPage('clients',this)"><span class="icon">👤</span><span class="nav-text">客戶</span></div>
+        </div>
+        <div class="nav-separator"></div>
+        <div class="sidebar-section" data-section="inventory">
+          <div class="sidebar-label">採購 / 庫存</div>
+          <div class="sidebar-item" data-page="stock" onclick="showPage('stock',this)"><span class="icon">📊</span><span class="nav-text">庫存 &amp; 備料</span><span class="badge" id="stock-badge">0</span></div>
+          <div class="sidebar-item" data-page="ledger" onclick="showPage('ledger',this)"><span class="icon">📘</span><span class="nav-text">庫存流水帳</span></div>
+        </div>
+        <div class="nav-separator"></div>
+        <div class="sidebar-section" data-section="system">
+          <div class="sidebar-label">系統管理</div>
+          <div class="sidebar-item" data-page="approvals" onclick="showPage('approvals',this)"><span class="icon">✅</span><span class="nav-text">審核中心</span><span class="badge" id="approval-badge">0</span></div>
+          <div class="sidebar-item" data-page="pmc" onclick="showPage('pmc',this)"><span class="icon">🚦</span><span class="nav-text">異常追蹤</span></div>
+          <div class="sidebar-item" data-page="data-health" onclick="showPage('data-health',this)"><span class="icon">🩺</span><span class="nav-text">資料健康檢查</span></div>
+        </div>`;
+    }
+    // ── CLIENT SIDEBAR ──
+    const cl=D.getElementById('sidebar-client');if(cl&&cl.dataset.v93Clean!=='1'){cl.dataset.v93Clean='1';cl.innerHTML=`<div class="sidebar-section" data-section="client-core"><div class="sidebar-item" data-page="client-forecast" onclick="showPage('client-forecast',this)"><span class="icon">📈</span><span class="nav-text">Forecast 規劃</span></div><div class="sidebar-item active" data-page="client-orders" onclick="showPage('client-orders',this)"><span class="icon">📦</span><span class="nav-text">訂單進度</span></div><div class="sidebar-item" data-page="client-delivery" onclick="showPage('client-delivery',this)"><span class="icon">🚚</span><span class="nav-text">交貨狀況</span></div></div>`}
+    // ── VENDOR SIDEBAR ──
+    const ve=D.getElementById('sidebar-vendor');if(ve&&ve.dataset.v93Clean!=='1'){ve.dataset.v93Clean='1';ve.innerHTML=`<div class="sidebar-section" data-section="vendor-core"><div class="sidebar-item active" data-page="vendor-tasks" onclick="showPage('vendor-tasks',this)"><span class="icon">⚙️</span><span class="nav-text">我的任務</span><span class="badge" id="v93-vendor-task-badge" style="display:none">0</span></div><div class="sidebar-item" data-page="vendor-gantt" onclick="showPage('vendor-gantt',this)"><span class="icon">📅</span><span class="nav-text">我的排程</span></div><div class="sidebar-item" data-page="vendor-updates" onclick="showPage('vendor-updates',this)"><span class="icon">💬</span><span class="nav-text">回報 / 留言</span></div></div>`}
+  }
+  function enforce(){build();const r=role();D.body.classList.toggle('v93-role-admin',r==='admin');D.body.classList.toggle('v93-role-client',r==='client');D.body.classList.toggle('v93-role-vendor',r==='vendor');const ad=D.getElementById('sidebar-admin'),cl=D.getElementById('sidebar-client'),ve=D.getElementById('sidebar-vendor');if(ad)ad.style.display=r==='admin'?'block':'none';if(cl)cl.style.display=r==='client'?'block':'none';if(ve)ve.style.display=r==='vendor'?'block':'none';const btn=D.getElementById('btn-new-order');if(btn)btn.style.display=r==='admin'?'':'none';badges()}
+  function safe(p){const r=role();if(r==='client')return CLIENT_PAGES.has(p)?p:'client-home';if(r==='vendor')return VENDOR_PAGES.has(p)?p:'vendor-home';return p}
+  function active(p){const r=role(),id=r==='client'?'sidebar-client':r==='vendor'?'sidebar-vendor':'sidebar-admin';return D.querySelector(`#${id} .sidebar-item[data-page="${p}"]`)||D.querySelector(`#${id} .sidebar-item`)}
+  function setActive(p){D.querySelectorAll('.sidebar-item').forEach(x=>x.classList.remove('active'));const e=active(p);if(e)e.classList.add('active')}
+  const oldSync=G.syncRoleUI;G.syncRoleUI=function(){try{oldSync&&oldSync.apply(this,arguments)}catch(e){} enforce()}
+  const oldApply=G.applyAuthenticatedUser;if(typeof oldApply==='function')G.applyAuthenticatedUser=function(user){const out=oldApply.apply(this,arguments);setTimeout(()=>{enforce();const p=safe(G.currentPage||'dashboard');if(p!==G.currentPage)G.showPage(p,active(p))},30);setTimeout(enforce,250);return out}
+  const oldSwitch=G.switchAccount;if(typeof oldSwitch==='function')G.switchAccount=function(){const out=oldSwitch.apply(this,arguments);setTimeout(()=>{enforce();const p=safe(G.currentPage||'dashboard');if(p!==G.currentPage)G.showPage(p,active(p))},20);return out}
+  const oldShow=G.showPage;G.showPage=function(page,el){enforce();const p=safe(page);const out=oldShow?oldShow.call(this,p,active(p)||el):undefined;setActive(p);setTimeout(enforce,0);setTimeout(enforce,120);return out}
+  function boot(){enforce();const p=safe(G.currentPage||(role()==='admin'?'dashboard':role()==='client'?'client-home':'vendor-home'));try{if(p!==G.currentPage)G.showPage(p,active(p))}catch(_){} enforce()}
+  G.enforceRoleSidebarV93=enforce;G.refreshTaskBadgesV93=badges;
+  // ── 封鎖 v48 rebuildAdminMenu 與 v92 replaceSidebars 覆蓋 admin sidebar ──
+  const _origRebuild=G.rebuildAdminMenu;G.rebuildAdminMenu=function(){/* blocked by v93 */};
+  if(typeof _origRebuild==='function'){/* already blocked */}
+  D.addEventListener('click',()=>setTimeout(enforce,50),true);D.addEventListener('change',()=>setTimeout(enforce,50),true);
+  const mo=new MutationObserver(()=>{clearTimeout(G.__v93RoleTimer);G.__v93RoleTimer=setTimeout(enforce,40)});if(D.body)mo.observe(D.body,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
+  if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',boot,{once:true});else boot();setTimeout(boot,300);setTimeout(boot,1000);
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     V95 ROLE ISOLATION — 三方資料隔離完整補丁
+     🔒 客戶：只看自己訂單 + 共享更新，不顯示廠商身份
+     🏭 廠商：只看分配任務，不知道客戶與其他廠商
+     🧭 管理者：全鏈路 + 建立訂單 + 分派任務 + 寫共享更新
+═══════════════════════════════════════════════════════ -->
+<style id="v95-isolation-style">
+/* ── 客戶視角：隱藏廠商相關欄位 ── */
+body.v95-client .hide-client,
+body.v95-vendor .hide-vendor,
+body.v95-client .vendor-only-col,
+body.v95-vendor .client-only-col { display:none !important; }
+
+/* ── 更新 modal：按 role 切換欄位 ── */
+body.v95-client  #update-admin-fields,
+body.v95-client  #update-vendor-fields,
+body.v95-vendor  #update-admin-fields,
+body.v95-vendor  #update-client-fields-admin { display:none !important; }
+
+body.v95-admin   #update-vendor-only-notice { display:none !important; }
+body.v95-client  #update-vendor-only-notice,
+body.v95-vendor  #update-vendor-only-notice { display:none !important; }
+
+/* 管理者才能看到完整寫三欄 */
+body.v95-admin   #update-three-col { display:grid !important; }
+body.v95-client  #update-three-col,
+body.v95-vendor  #update-three-col { display:none !important; }
+
+/* 廠商回報 only 欄 */
+body.v95-admin   #update-vendor-report-only { display:none !important; }
+body.v95-client  #update-vendor-report-only { display:none !important; }
+body.v95-vendor  #update-vendor-report-only { display:block !important; }
+
+/* ── role banner 顏色 ── */
+.v95-client-banner {
+  background: rgba(142,163,176,0.10);
+  border: 1px solid rgba(142,163,176,0.22);
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: .82rem;
+  color: var(--blue);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.v95-vendor-banner {
+  background: rgba(142,166,146,0.10);
+  border: 1px solid rgba(142,166,146,0.22);
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: .82rem;
+  color: var(--green);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.v95-admin-banner {
+  background: rgba(143,133,120,0.10);
+  border: 1px solid rgba(143,133,120,0.20);
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-size: .82rem;
+  color: var(--accent);
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.v95-lock-chip {
+  font-size: .68rem;
+  background: rgba(184,134,124,0.12);
+  color: var(--red);
+  border: 1px solid rgba(184,134,124,0.2);
+  border-radius: 20px;
+  padding: 2px 9px;
+  margin-left: 6px;
+}
+/* 更新 modal 標籤 */
+.v95-msg-label {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.v95-msg-who {
+  font-size: .7rem;
+  color: var(--text3);
+  margin-top: 3px;
+}
+/* 訂單卡內廠商遮罩 */
+.v95-vendor-masked {
+  color: var(--text3);
+  font-style: italic;
+  font-size: .78rem;
+}
+/* 共享更新卡 */
+.v95-update-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+}
+.v95-update-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.v95-update-order { font-family: 'JetBrains Mono', monospace; font-size: .78rem; color: var(--accent); }
+.v95-update-phase { font-size: .7rem; background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(142,163,176,.2); border-radius: 20px; padding: 1px 8px; margin-left: 6px; }
+.v95-update-time  { font-size: .7rem; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+.v95-update-msg   { font-size: .84rem; line-height: 1.7; color: var(--text); }
+.v95-update-source{ font-size: .7rem; color: var(--text3); margin-top: 6px; }
+
+/* 廠商任務卡去掉客戶名稱 */
+.v95-task-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 12px;
+}
+.v95-task-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.v95-task-id { font-family:'JetBrains Mono',monospace; font-size:.78rem; color:var(--accent); }
+.v95-task-product { font-size:.9rem; font-weight:700; color:var(--text); margin-top:2px; }
+.v95-task-meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:10px; margin-top:12px; }
+.v95-meta-item .label { font-size:.65rem; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); margin-bottom:3px; }
+.v95-meta-item .value { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:.88rem; color:var(--text); }
+.v95-task-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
+
+/* 管理者 shared-update 撰寫區 */
+.v95-compose-area {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.v95-compose-area label { font-size:.72rem; font-weight:700; color:var(--text2); display:block; margin-bottom:5px; }
+.v95-compose-area textarea {
+  width:100%; resize:vertical; min-height:56px;
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 8px; padding: 8px 10px;
+  font-family: 'Noto Sans TC', sans-serif; font-size:.84rem; color: var(--text);
+}
+.v95-compose-area textarea:focus { outline:none; border-color: var(--accent); }
+
+/* 廠商任務：遮罩不顯示客戶名 */
+.v95-order-ref {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .76rem;
+  color: var(--text2);
+}
+</style>
+
+<script id="v95-isolation-script">
+(function(){
+'use strict';
+const G = window, D = document;
+
+/* ── 1. BODY CLASS SYNC ── */
+function syncBodyClass(){
+  const r = (G.getCurrentUser ? G.getCurrentUser() : {}).role || G.currentRole || 'admin';
+  D.body.classList.toggle('v95-admin',  r === 'admin');
+  D.body.classList.toggle('v95-client', r === 'client');
+  D.body.classList.toggle('v95-vendor', r === 'vendor');
+}
+
+/* ── 2. SAFE HELPERS ── */
+const S = v => String(v ?? '');
+const E = v => S(v).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const A = v => Array.isArray(v) ? v : [];
+function pct(done, total){ return total > 0 ? Math.min(100, Math.round((done||0)/total*100)) : 0; }
+function progressBar(val, max){
+  const p = pct(val, max);
+  const cls = p >= 90 ? 'fill-green' : p >= 50 ? 'fill-yellow' : 'fill-red';
+  return `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill ${cls}" style="width:${p}%"></div></div><span class="progress-text">${p}%</span></div>`;
+}
+
+/* ── 3. 取得資料輔助 ── */
+function db(){ return G.DB || {}; }
+function user(){ return G.getCurrentUser ? G.getCurrentUser() : (G.ACTIVE_USER || {}); }
+function role(){ return user().role || 'admin'; }
+
+function visibleOrders(){
+  const u = user(), orders = A(db().orders);
+  if(u.role === 'admin') return orders;
+  if(u.role === 'client') return orders.filter(o => S(o.clientId) === S(u.clientId));
+  if(u.role === 'vendor'){
+    const ids = new Set(A(db().vendorAssignments).filter(a => S(a.vendorId) === S(u.vendorId)).map(a => a.orderId));
+    return orders.filter(o => ids.has(o.id));
+  }
+  return [];
+}
+
+function visibleUpdates(){
+  const u = user(), all = A(db().updates).slice().sort((a,b) => S(b.createdAt||'').localeCompare(S(a.createdAt||'')));
+  if(u.role === 'admin') return all;
+  if(u.role === 'client') return all.filter(x => A(x.visibleTo).includes(`client:${u.clientId}`));
+  if(u.role === 'vendor') return all.filter(x => A(x.visibleTo).includes(`vendor:${u.vendorId}`));
+  return [];
+}
+
+function msgFor(upd){
+  const r = role();
+  if(r === 'admin')  return upd.adminMessage || upd.clientMessage || upd.vendorMessage || '';
+  if(r === 'client') return upd.clientMessage || '';
+  if(r === 'vendor') return upd.vendorMessage || '';
+  return '';
+}
+
+function sourceFor(upd){
+  const cb = S(upd.createdBy || '');
+  if(cb === 'admin') return role() === 'admin' ? '🧭 管理者' : '📋 系統更新';
+  if(cb.startsWith('vendor:')) return role() === 'admin' ? `🏭 ${S((db().vendors||[]).find(v=>v.id===cb.split(':')[1])?.name || cb.split(':')[1])}` : '📋 供應端更新';
+  return '📋 系統更新';
+}
+
+function getVendorName(id){ return S(A(db().vendors).find(v => v.id === id)?.name || ''); }
+
+/* ── 4. 渲染「共享更新卡片」（三方各看不同訊息） ── */
+function updateCardHTML(upd){
+  const msg = E(msgFor(upd));
+  if(!msg) return '';
+  return `<div class="v95-update-card">
+    <div class="v95-update-card-header">
+      <div><span class="v95-update-order">${E(upd.orderId)}</span><span class="v95-update-phase">${E(upd.phase||'更新')}</span></div>
+      <span class="v95-update-time">${E(upd.createdAt||'')}</span>
+    </div>
+    <div class="v95-update-msg">${msg}</div>
+    <div class="v95-update-source">${sourceFor(upd)}</div>
+  </div>`;
+}
+
+/* ── 5. 客戶端訂單卡（無廠商資訊） ── */
+function clientOrderCardHTML(o){
+  const steps = [
+    { label:'訂單確認', done:true },
+    { label:'生產中',   done:['生產中','待出貨','已交貨','缺料'].includes(o.status) },
+    { label:'出貨',     done:!!o.shipDate },
+    { label:'已收貨',   done:!!o.received },
+    { label:'完成',     done:!!o.clientConfirm },
+  ];
+  const stepsHTML = steps.map((s,i) => {
+    const isActive = !s.done && (i===0 || steps[i-1].done);
+    return `${i>0?`<div class="coc-connector${steps[i-1].done?' done':''}${isActive?' active':''}"></div>`:''}
+    <div class="coc-step">
+      <div class="coc-step-dot${s.done?' done':''}${isActive?' active':''}">${s.done?'✓':i+1}</div>
+      <div class="coc-step-label">${s.label}</div>
+      <div class="coc-step-date">${s.done&&steps[i-1]?.done?'✓':'—'}</div>
+    </div>`;
+  }).join('');
+  const latestUpd = visibleUpdates().find(u => u.orderId === o.id);
+  const latestMsg = latestUpd ? E(msgFor(latestUpd)) : '尚無進度更新';
+  const fromFc = o.sourceForecastId ? `<span style="font-size:.66rem;background:var(--blue-bg);color:var(--blue);border-radius:12px;padding:1px 7px;margin-left:6px;border:1px solid rgba(142,163,176,.2)">由 Forecast 轉入</span>` : '';
+  const urgentStyle = G.isUrgent && G.isUrgent(o.delivery) ? 'color:var(--yellow)' : 'color:var(--text2)';
+  return `<div class="client-order-card">
+    <div class="coc-header">
+      <div>
+        <div class="coc-id">${E(o.id)}${fromFc}</div>
+        <div class="coc-product">${E(o.product)}</div>
+      </div>
+      <div style="text-align:right">
+        ${G.pill ? G.pill(o.status) : `<span class="pill">${E(o.status)}</span>`}
+        <div style="margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:.78rem;${urgentStyle}">交期 ${E(o.delivery)}</div>
+      </div>
+    </div>
+    <div class="coc-timeline">${stepsHTML}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px">
+      <div><div class="vtc-meta-label">數量</div><div class="vtc-meta-value">${Number(o.qty||0).toLocaleString()} pcs</div></div>
+      <div><div class="vtc-meta-label">最新共享更新</div><div class="vtc-meta-value" style="font-family:'Noto Sans TC',sans-serif;font-size:.8rem">${latestMsg}</div></div>
+      <div><div class="vtc-meta-label">預計交貨日</div><div class="vtc-meta-value" style="${urgentStyle}">${E(o.delivery||'—')}</div></div>
+    </div>
+  </div>`;
+  // ↑ 完全無廠商名稱欄位
+}
+
+/* ── 6. 廠商任務卡（無客戶資訊） ── */
+function vendorTaskCardHTML(o){
+  const u = user();
+  const plans = A(db().plans);
+  const plan = plans.find(p => p.order === o.id && p.vendor === u.vendorId) || plans.find(p => p.order === o.id);
+  const doneQty = plan?.done || 0;
+  const planQty = plan?.planQty || o.planQty || o.qty || 0;
+  const urgentStyle = G.isUrgent && G.isUrgent(o.delivery) ? 'color:var(--yellow);font-weight:700' : 'color:var(--text)';
+  return `<div class="v95-task-card">
+    <div class="v95-task-header">
+      <div>
+        <div class="v95-task-id">${E(o.id)}</div>
+        <div class="v95-task-product">${E(o.product)}</div>
+      </div>
+      <div style="text-align:right">
+        ${G.pill ? G.pill(o.status) : `<span class="pill">${E(o.status)}</span>`}
+        <div style="margin-top:4px;font-size:.72rem;color:var(--text3)">交期</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;${urgentStyle}">${E(o.delivery)}</div>
+      </div>
+    </div>
+    <div class="v95-task-meta">
+      <div class="v95-meta-item"><div class="label">需求量</div><div class="value">${Number(o.qty||0).toLocaleString()} pcs</div></div>
+      <div class="v95-meta-item"><div class="label">計畫量</div><div class="value">${Number(planQty).toLocaleString()} pcs</div></div>
+      <div class="v95-meta-item"><div class="label">已完成</div><div class="value" style="color:var(--green)">${Number(doneQty).toLocaleString()} pcs</div></div>
+      <div class="v95-meta-item"><div class="label">進度</div><div>${progressBar(doneQty, planQty||1)}</div></div>
+    </div>
+    ${o.notes ? `<div style="font-size:.78rem;color:var(--text2);background:var(--surface2);border-radius:6px;padding:8px 10px;margin-top:10px">備註：${E(o.notes)}</div>` : ''}
+    <div class="v95-task-actions">
+      <button class="btn btn-outline btn-sm" onclick="window.v95OpenReport('${E(o.id)}')">📝 回報更新</button>
+    </div>
+  </div>`;
+  // ↑ 完全無客戶名稱、其他廠商資訊
+}
+
+/* ── 7. 重新渲染客戶訂單頁 ── */
+function renderClientOrdersV95(){
+  syncBodyClass();
+  const u = user();
+  const orders = visibleOrders();
+  const el = D.getElementById('page-client-orders');
+  if(!el) return;
+
+  // 更新 KPI
+  const setV = (id, v) => { const e = D.getElementById(id); if(e) e.textContent = String(v); };
+  setV('c-active', orders.filter(o => o.status !== '已交貨').length);
+  setV('c-done',   orders.filter(o => o.status === '已交貨').length);
+  setV('c-soon',   orders.filter(o => G.isUrgent && G.isUrgent(o.delivery) && o.status !== '已交貨').length);
+
+  // 共享更新
+  const updList = D.getElementById('client-updates-list');
+  if(updList){
+    const updHTML = visibleUpdates().map(updateCardHTML).filter(Boolean).join('');
+    updList.innerHTML = updHTML || '<div class="empty">目前沒有共享更新</div>';
+  }
+
+  // Forecast hint
+  const myForecasts = A(db().forecasts).filter(f => S(f.clientId) === S(u.clientId) && f.status === 'submitted');
+  const fHint = myForecasts.length ? `<div class="v95-client-banner">🕐 你有 <strong>${myForecasts.length}</strong> 筆 Forecast 審核中，管理者確認後會出現在這裡。<span style="cursor:pointer;text-decoration:underline;margin-left:8px" onclick="showPage('client-forecast',null)">查看 →</span></div>` : '';
+
+  // 訂單卡（無廠商）
+  const orderList = D.getElementById('client-orders-list');
+  if(orderList){
+    orderList.innerHTML = fHint + (orders.length ? orders.map(clientOrderCardHTML).join('') : (!myForecasts.length ? '<div class="empty">目前沒有訂單。如有需求請先填寫 Forecast。</div>' : ''));
+  }
+}
+
+/* ── 8. 重新渲染廠商任務頁 ── */
+function renderVendorTasksV95(){
+  syncBodyClass();
+  const u = user();
+  const orders = visibleOrders();
+  const active = orders.filter(o => o.status !== '已交貨');
+
+  const setV = (id, v) => { const e = D.getElementById(id); if(e) e.textContent = String(v); };
+  setV('v-active',   active.length);
+  setV('v-due',      active.filter(o => G.isUrgent && G.isUrgent(o.delivery)).length);
+  setV('v-capacity', active.reduce((s,o) => s + (o.planQty||0), 0).toLocaleString());
+
+  // 廠商 summary bar（不顯示客戶）
+  let sumBar = D.getElementById('v95-vendor-summary');
+  if(!sumBar){
+    sumBar = D.createElement('div');
+    sumBar.id = 'v95-vendor-summary';
+    sumBar.className = 'v95-vendor-banner';
+    const tasks = D.getElementById('page-vendor-tasks');
+    if(tasks) tasks.insertBefore(sumBar, tasks.querySelector('.stats-grid') || tasks.firstChild);
+  }
+  const assignments = A(db().vendorAssignments).filter(a => S(a.vendorId) === S(u.vendorId));
+  const phases = [...new Set(assignments.map(a=>a.phase).filter(Boolean))];
+  const vInfo = A(db().vendors).find(v => v.id === u.vendorId);
+  sumBar.innerHTML = `🏭 <strong>${E(vInfo?.name || u.vendorName || u.vendorId || '廠商')}</strong>&nbsp;·&nbsp;製程：${E(phases.length ? phases.slice(0,3).join(' / ') : (vInfo?.type || '—'))}&nbsp;·&nbsp;月產能 ${Number(vInfo?.capacity||0).toLocaleString()} pcs<span class="v95-lock-chip">🔒 客戶資料隔離中</span>`;
+
+  // 共享更新
+  const updList = D.getElementById('vendor-updates-list');
+  if(updList){
+    const updHTML = visibleUpdates().map(updateCardHTML).filter(Boolean).join('');
+    updList.innerHTML = updHTML || '<div class="empty">目前沒有可見更新</div>';
+  }
+
+  // 任務卡（無客戶）
+  const list = D.getElementById('vendor-tasks-list');
+  if(list) list.innerHTML = active.length ? active.map(vendorTaskCardHTML).join('') : '<div class="empty">目前沒有進行中的任務</div>';
+}
+
+/* ── 9. 更新 modal 三方版本 ── */
+function upgradeUpdateModal(){
+  const modal = D.getElementById('modal-update');
+  if(!modal || modal.dataset.v95) return;
+  modal.dataset.v95 = '1';
+
+  // 找 modal body
+  const body = modal.querySelector('.modal-body');
+  if(!body) return;
+
+  // 保留訂單選擇器
+  const orderGroup = body.querySelector('.form-group');
+
+  body.innerHTML = '';
+  if(orderGroup) body.appendChild(orderGroup);
+
+  // Phase 選擇
+  const phaseGroup = D.createElement('div');
+  phaseGroup.className = 'form-group';
+  phaseGroup.innerHTML = `<label>階段</label><select id="u-phase">
+    <option value="接單確認">接單確認</option>
+    <option value="生產中">生產中</option>
+    <option value="出貨">出貨</option>
+    <option value="到貨">到貨</option>
+    <option value="完成">完成</option>
+    <option value="異常">異常</option>
+  </select>`;
+  body.appendChild(phaseGroup);
+
+  // 管理者：三欄撰寫
+  const threeCol = D.createElement('div');
+  threeCol.id = 'update-three-col';
+  threeCol.style.display = 'none'; // toggled by CSS
+  threeCol.innerHTML = `
+    <div class="v95-compose-area">
+      <div class="v95-msg-label">🧭 管理者內部備注</div>
+      <textarea id="u-admin-msg" placeholder="內部紀錄、廠商細節、成本備注（客戶與廠商不可見）"></textarea>
+      <div class="v95-msg-who">僅管理者可見</div>
+    </div>
+    <div class="v95-compose-area">
+      <div class="v95-msg-label">👤 客戶可見更新</div>
+      <textarea id="u-client-msg" placeholder="提供給客戶的進度說明（不含廠商名稱）"></textarea>
+      <div class="v95-msg-who">客戶看到這則 · 不顯示廠商身份</div>
+    </div>
+    <div class="v95-compose-area">
+      <div class="v95-msg-label">🏭 廠商可見更新</div>
+      <textarea id="u-vendor-msg" placeholder="給廠商的工序指示或確認（不含客戶資訊）"></textarea>
+      <div class="v95-msg-who">廠商看到這則 · 不顯示客戶資訊</div>
+    </div>`;
+  body.appendChild(threeCol);
+
+  // 廠商：只看自己的回報欄
+  const vendorOnly = D.createElement('div');
+  vendorOnly.id = 'update-vendor-report-only';
+  vendorOnly.style.display = 'none';
+  vendorOnly.innerHTML = `
+    <div class="v95-compose-area">
+      <div class="v95-msg-label">📝 回報進度</div>
+      <textarea id="u-vendor-msg-only" placeholder="回報目前完成量、預計交期、異常說明…"></textarea>
+      <div class="v95-msg-who">管理者可見，客戶看到的是管理者轉述版本</div>
+    </div>`;
+  body.appendChild(vendorOnly);
+}
+
+/* ── 10. 廠商回報 shortcut ── */
+G.v95OpenReport = function(orderId){
+  upgradeUpdateModal();
+  openModal('modal-update');
+  setTimeout(() => {
+    const sel = D.getElementById('u-order');
+    if(sel) sel.value = orderId;
+    syncBodyClass();
+  }, 20);
+};
+
+/* ── 11. 攔截 saveUpdate 加入 v95 邏輯 ── */
+const _oldSave = G.saveUpdate;
+G.saveUpdate = function(){
+  const r = role();
+  if(r === 'vendor'){
+    // 廠商只能回報自己的任務，訊息走廠商欄
+    const orderId = (D.getElementById('u-order') || {}).value;
+    const order = A(db().orders).find(o => o.id === orderId);
+    if(!order){ alert('請選擇訂單'); return; }
+    const u = user();
+    const vendorMsg = (D.getElementById('u-vendor-msg-only') || D.getElementById('u-vendor-msg') || {}).value || '';
+    const phase = (D.getElementById('u-phase') || {}).value || '生產中';
+    const row = {
+      id: 'UPD-' + String(A(db().updates).length+1).padStart(3,'0'),
+      orderId,
+      phase,
+      createdAt: new Date().toLocaleString('zh-TW',{hour12:false}).replace(/\//g,'-'),
+      createdBy: `vendor:${u.vendorId}`,
+      vendorId:  u.vendorId,
+      clientId:  order.clientId,
+      visibleTo: ['admin', `vendor:${u.vendorId}`],  // 廠商回報預設不直接給客戶，管理者決定是否轉
+      adminMessage:  `[廠商回報] ${vendorMsg}`,
+      clientMessage: '', // 管理者審閱後再填
+      vendorMessage: vendorMsg,
+    };
+    A(db().updates).unshift(row);
+    (G.DB || (G.DB = {})).updates = [row, ...A((G.DB||{}).updates).filter(x=>x.id!==row.id)];
+    D.getElementById('modal-update')?.classList.remove('open');
+    ['u-vendor-msg-only','u-vendor-msg','u-admin-msg','u-client-msg'].forEach(id => { const e=D.getElementById(id); if(e) e.value=''; });
+    renderVendorTasksV95();
+    return;
+  }
+  // admin：用原來的 saveUpdate（三欄分開寫）
+  if(typeof _oldSave === 'function') _oldSave.call(this);
+};
+
+/* ── 12. 攔截 showPage 加 body class 同步 ── */
+const _oldShow = G.showPage;
+G.showPage = function(name, el){
+  syncBodyClass();
+  const out = _oldShow ? _oldShow.call(this, name, el) : undefined;
+  syncBodyClass();
+  if(name === 'client-orders' || name === 'client-forecast') { renderClientOrdersV95(); }
+  if(name === 'client-delivery') { /* renderClientDelivery 已有正確隔離，保持原版 */ }
+  if(name === 'vendor-tasks')  { renderVendorTasksV95(); }
+  if(name === 'vendor-gantt')  { /* 原版已OK */ }
+  // 升級 update modal
+  upgradeUpdateModal();
+  return out;
+};
+
+/* ── 13. 渲染管理者「共享更新」表格加入可見範圍欄 ── */
+const _oldRenderAdminUpdates = G.renderAdminUpdates;
+G.renderAdminUpdates = function(){
+  if(role() !== 'admin'){ if(_oldRenderAdminUpdates) _oldRenderAdminUpdates(); return; }
+  const tbody = D.getElementById('updates-admin-tbody');
+  if(!tbody) return;
+  const rows = visibleUpdates();
+  tbody.innerHTML = rows.map(u => {
+    const visLabel = A(u.visibleTo).map(x => {
+      if(x === 'admin') return '<span style="color:var(--accent);font-size:.68rem">🧭管</span>';
+      if(x.startsWith('client:')) return '<span style="color:var(--blue);font-size:.68rem">👤客</span>';
+      if(x.startsWith('vendor:')) return '<span style="color:var(--green);font-size:.68rem">🏭廠</span>';
+      return x;
+    }).join(' ');
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${E(u.createdAt)}</td>
+      <td>${E(u.orderId)}</td>
+      <td>${E(u.phase)}</td>
+      <td style="max-width:220px;font-size:.8rem">${E(u.adminMessage||'')}</td>
+      <td style="max-width:200px;font-size:.8rem">${E(u.clientMessage||'')}<div style="font-size:.64rem;color:var(--text3);margin-top:2px">客戶可見</div></td>
+      <td style="max-width:200px;font-size:.8rem">${E(u.vendorMessage||'')}<div style="font-size:.64rem;color:var(--text3);margin-top:2px">廠商可見</div></td>
+      <td style="font-size:.72rem">${E(G.sourceLabel ? G.sourceLabel(u.createdBy) : u.createdBy)}</td>
+      <td>${visLabel}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" class="empty">尚無更新資料</td></tr>';
+
+  // 加欄位表頭
+  const thead = tbody.closest('table')?.querySelector('thead tr');
+  if(thead && thead.querySelectorAll('th').length < 8){
+    const th = D.createElement('th');
+    th.textContent = '可見範圍';
+    thead.appendChild(th);
+  }
+};
+
+/* ── 14. syncRoleUI 補丁：管理者看到完整功能 banner ── */
+const _oldSync = G.syncRoleUI;
+G.syncRoleUI = function(){
+  if(_oldSync) _oldSync.apply(this, arguments);
+  syncBodyClass();
+  upgradeUpdateModal();
+};
+
+/* ── 15. 初始啟動 ── */
+function boot(){
+  syncBodyClass();
+  upgradeUpdateModal();
+  // 若目前是客戶頁，立即重渲染
+  const pg = G.currentPage || '';
+  if(pg === 'client-orders') renderClientOrdersV95();
+  if(pg === 'vendor-tasks')  renderVendorTasksV95();
+}
+
+// 多重觸發確保
+if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot, {once:true});
+else boot();
+setTimeout(boot, 400);
+setTimeout(boot, 1200);
+
+// 監聽 role 切換
+D.addEventListener('click', () => setTimeout(syncBodyClass, 30), true);
+
+G.v95RenderClient = renderClientOrdersV95;
+G.v95RenderVendor = renderVendorTasksV95;
+
+})();
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     V96 SIDEBAR GUARD — 永久鎖定三方選單，防止舊版 script 注入
+     任何試圖在 sidebar-client / sidebar-vendor 加入不在白名單
+     的項目，都會在 50ms 內被移除。
+═══════════════════════════════════════════════════════ -->
+<script id="v96-sidebar-guard">
+(function(){
+'use strict';
+if(window.__V96_GUARD__) return;
+window.__V96_GUARD__ = true;
+
+const D = document, G = window;
+
+/* ── 白名單 ── */
+const CLIENT_PAGES  = new Set(['client-home','client-forecast','client-orders','client-delivery']);
+const VENDOR_PAGES  = new Set(['vendor-home','vendor-tasks','vendor-gantt','vendor-updates']);
+
+/* ── 客戶側邊欄：只顯示有權限的項目 ── */
+const CLIENT_SIDEBAR_HTML = `<div class="sidebar-section" data-section="client-core"><div class="sidebar-item" data-page="client-forecast" onclick="showPage('client-forecast',this)"><span class="icon">📈</span><span class="nav-text">Forecast 規劃</span></div><div class="sidebar-item active" data-page="client-orders" onclick="showPage('client-orders',this)"><span class="icon">📦</span><span class="nav-text">訂單進度</span></div><div class="sidebar-item" data-page="client-delivery" onclick="showPage('client-delivery',this)"><span class="icon">🚚</span><span class="nav-text">交貨狀況</span></div></div>`;
+
+/* ── 廠商側邊欄：只顯示有權限的項目 ── */
+const VENDOR_SIDEBAR_HTML = `<div class="sidebar-section" data-section="vendor-core"><div class="sidebar-item active" data-page="vendor-tasks" onclick="showPage('vendor-tasks',this)"><span class="icon">⚙️</span><span class="nav-text">我的任務</span><span class="badge" id="v93-vendor-task-badge" style="display:none">0</span></div><div class="sidebar-item" data-page="vendor-gantt" onclick="showPage('vendor-gantt',this)"><span class="icon">📅</span><span class="nav-text">我的排程</span></div><div class="sidebar-item" data-page="vendor-updates" onclick="showPage('vendor-updates',this)"><span class="icon">💬</span><span class="nav-text">回報 / 留言</span></div></div>`;
+
+/* ── 核心守衛函式 ── */
+function getRole(){
+  try{ return (G.getCurrentUser ? G.getCurrentUser() : G.ACTIVE_USER || {}).role || G.currentRole || 'admin'; }
+  catch(_){ return 'admin'; }
+}
+
+function rebuildIfNeeded(sbId, correctHTML, allowedPages){
+  const sb = D.getElementById(sbId);
+  if(!sb) return;
+
+  // 檢查是否有「越界」項目（不在白名單的 data-page）
+  const intruders = [...sb.querySelectorAll('.sidebar-item[data-page]')]
+    .filter(el => !allowedPages.has(el.getAttribute('data-page')));
+
+  // 檢查是否有無 data-page 的 sidebar-item（舊版動態插入）
+  const noPage = [...sb.querySelectorAll('.sidebar-item:not([data-page])')];
+
+  if(intruders.length || noPage.length || sb.dataset.v96 !== '1'){
+    sb.innerHTML = correctHTML;
+    sb.dataset.v96 = '1';
+    // 恢復目前頁面的 active 狀態
+    const cur = G.currentPage || '';
+    if(allowedPages.has(cur)){
+      sb.querySelectorAll('.sidebar-item').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('data-page') === cur);
+      });
+    }
+  }
+}
+
+function guard(){
+  const r = getRole();
+  if(r === 'client') rebuildIfNeeded('sidebar-client', CLIENT_SIDEBAR_HTML, CLIENT_PAGES);
+  if(r === 'vendor') rebuildIfNeeded('sidebar-vendor', VENDOR_SIDEBAR_HTML, VENDOR_PAGES);
+}
+
+/* ── 攔截 showPage，在每次導航後補跑 guard ── */
+const _oldShow = G.showPage;
+G.showPage = function(name, el){
+  const out = _oldShow ? _oldShow.apply(this, arguments) : undefined;
+  setTimeout(guard, 0);
+  setTimeout(guard, 80);
+  return out;
+};
+
+/* ── MutationObserver 監控兩個 sidebar ── */
+function observeSidebar(id){
+  const sb = D.getElementById(id);
+  if(!sb) return;
+  new MutationObserver(() => {
+    clearTimeout(G.__v96GuardTimer);
+    G.__v96GuardTimer = setTimeout(guard, 30);
+  }).observe(sb, { childList:true, subtree:true });
+}
+
+/* ── 攔截 syncRoleUI 確保 guard 在 role 切換後執行 ── */
+const _oldSync = G.syncRoleUI;
+G.syncRoleUI = function(){
+  if(_oldSync) _oldSync.apply(this, arguments);
+  setTimeout(guard, 50);
+  setTimeout(guard, 300);
+};
+
+/* ── 攔截 applyAuthenticatedUser（Firebase 登入） ── */
+const _oldApply = G.applyAuthenticatedUser;
+G.applyAuthenticatedUser = function(user){
+  const out = _oldApply ? _oldApply.apply(this, arguments) : undefined;
+  setTimeout(guard, 60);
+  setTimeout(guard, 500);
+  return out;
+};
+
+/* ── 啟動 ── */
+function boot(){
+  guard();
+  observeSidebar('sidebar-client');
+  observeSidebar('sidebar-vendor');
+}
+
+if(D.readyState === 'loading') D.addEventListener('DOMContentLoaded', boot, {once:true});
+else boot();
+setTimeout(boot, 200);
+setTimeout(guard, 800);
+setTimeout(guard, 2000);
+
+// 額外防線：每次 click 後補跑（應對動態插入）
+D.addEventListener('click', () => setTimeout(guard, 60), true);
+
+G.v96Guard = guard;
 })();
 </script>
 
