@@ -35,7 +35,7 @@ function escapeHtml(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c
 </script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>OEM HUB 客戶廠商資料對齊版</title>
+<title>OEM HUB v314 訊息路由修正版</title>
 <style>
 :root{
   --bg:#f4efe7;--surface:#fffdf8;--surface2:#f0e8dd;--line:#d9cec2;
@@ -187,7 +187,7 @@ tr:hover td{background:rgba(246,240,232,.55)}
 <div id="loginPage" class="login">
   <div class="login-card">
     <div class="login-left">
-      <div class="kicker">OEM HUB · v278 Safe Clean Permission Lock</div>
+      <div class="kicker">OEM HUB · v314 Message Routing Fix</div>
       <h1 class="login-title">客戶 Forecast 下單、BOM 客供料標記、庫存台帳與供料計畫全整合。</h1>
       <p class="login-desc">v278：安全清理版。不清空 Firebase/Auth 狀態，不覆蓋功能函式，只鎖定角色選單與未授權頁面，避免舊版選單或通知閃現。</p>
       <div class="demo-list">
@@ -15342,5 +15342,370 @@ body.oem-v290-app-mode .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,
 })();
 </script>
 
+<!-- v313 registration complete automation: users.companyId + master binding -->
+<script id="v313-register-users-companyid-auto">
+(function(){
+  var W=window,D=document;
+  function E(id){return D.getElementById(id)}
+  function V(id){var el=E(id);return el?String(el.value||'').trim():''}
+  function now(){return new Date().toISOString()}
+  function escId(v){return String(v||'').trim().replace(/\s+/g,'-').replace(/[^a-zA-Z0-9_-]/g,'').toUpperCase()}
+  function prefix(role){return role==='vendor'?'V':'C'}
+  function colName(role){return role==='vendor'?'vendors':'clients'}
+  function roleLabel(role){return role==='vendor'?'廠商':'客戶'}
+  function pad3(n){return String(n).padStart(3,'0')}
+  function setCompanyFieldHint(){
+    var input=E('regCompanyId'); if(!input) return;
+    var wrap=input.closest?input.closest('.field'):input.parentElement;
+    if(wrap){ wrap.style.display='block'; wrap.style.opacity='.72'; }
+    input.placeholder='可留空，系統會自動產生；若要綁既有主檔可填 C001 / V001';
+  }
+  async function docExists(collection,id){try{return (await db.collection(collection).doc(id).get()).exists}catch(e){return false}}
+  async function findMaster(role,email,companyName,manualId){
+    var col=colName(role), lower=String(email||'').toLowerCase();
+    if(manualId){
+      var mid=escId(manualId);
+      try{var m=await db.collection(col).doc(mid).get(); if(m.exists) return {id:m.id,data:m.data()||{},source:'manualId'};}catch(e){}
+      return {id:mid,data:null,source:'manualNew'};
+    }
+    var fields=[['loginEmail',lower],['email',lower],['email',email],['name',companyName]];
+    var seen={};
+    for(var i=0;i<fields.length;i++){
+      var f=fields[i][0],v=fields[i][1]; if(!v) continue;
+      try{
+        var snap=await db.collection(col).where(f,'==',v).limit(3).get();
+        var found=null; snap.forEach(function(d){if(!seen[d.id]&&!found){seen[d.id]=true;found={id:d.id,data:d.data()||{},source:f}}});
+        if(found) return found;
+      }catch(e){console.warn('v313 find master failed',f,v,e)}
+    }
+    return null;
+  }
+  async function nextId(role){
+    var p=prefix(role), col=colName(role), max=0;
+    try{
+      var snap=await db.collection(col).get();
+      snap.forEach(function(d){var m=String(d.id||'').toUpperCase().match(new RegExp('^'+p+'(\\d+)$')); if(m) max=Math.max(max,parseInt(m[1],10)||0)});
+    }catch(e){}
+    for(var n=max+1;n<max+300;n++){var id=p+pad3(n); if(!(await docExists(col,id))) return id;}
+    return p+Date.now();
+  }
+  async function safeSignOut(){try{await auth.signOut()}catch(e){}}
+
+  W.registerUser=async function(){
+    if(!W.FIREBASE_CONFIG_READY || !W.auth || !W.db){alert('Firebase 尚未設定，無法自助註冊。請先完成 Firebase config。');return;}
+    var role=V('regRole')||'vendor', email=V('regEmail').toLowerCase(), pass=V('regPassword'), companyName=V('regCompanyName'), contact=V('regName'), manualId=V('regCompanyId'), t=now();
+    if(['vendor','client'].indexOf(role)<0) return alert('身份只能選擇廠商或客戶。');
+    if(!email||!pass||!companyName) return alert('請填寫 Email、密碼與公司名稱。公司 ID 可留空由系統自動產生。');
+    if(pass.length<6) return alert('密碼至少 6 碼。');
+    W.__v214Registering=true;
+    try{
+      var existing=await findMaster(role,email,companyName,manualId);
+      var companyId=existing?existing.id:await nextId(role);
+      companyId=escId(companyId);
+      var target=colName(role);
+      if(existing && existing.data){
+        var owner=String(existing.data.userUid||existing.data.authUid||'');
+        var masterEmail=String(existing.data.loginEmail||existing.data.email||'').toLowerCase();
+        if(owner && masterEmail && masterEmail!==email){ throw new Error('這個公司 ID 已綁定其他登入帳號，請換一個公司 ID 或請 Admin 手動處理。'); }
+      }
+      var cred=await auth.createUserWithEmailAndPassword(email,pass);
+      var uid=cred.user.uid;
+      await db.collection('users').doc(uid).set({uid:uid,email:email,name:contact||companyName,role:role,companyId:companyId,companyName:companyName,active:true,status:'active',source:'v313-register',createdAt:t,updatedAt:t},{merge:true});
+      var base={id:companyId,companyId:companyId,name:companyName,contact:contact,email:email,loginEmail:email,userUid:uid,authUid:uid,role:role,active:true,status:'active',source:existing&&existing.data?'v313-linked-existing-master':'v313-created-master',updatedAt:t};
+      if(!(existing&&existing.data)) base.createdAt=t;
+      if(role==='vendor'){ base.type=V('regVendorType')||(existing&&existing.data&&existing.data.type)||'通用'; base.capacity=Number(V('regCapacity')||(existing&&existing.data&&existing.data.capacity)||80); }
+      else{ base.phone=V('regPhone')||(existing&&existing.data&&existing.data.phone)||''; base.note=V('regClientNote')||(existing&&existing.data&&existing.data.note)||''; }
+      await db.collection(target).doc(companyId).set(base,{merge:true});
+      await safeSignOut(); W.__v214Registering=false;
+      alert('✅ v313 註冊完成，已自動寫入 users.companyId 並綁定主檔！\n身份：'+roleLabel(role)+'\n公司 ID：'+companyId+'\n公司：'+companyName+'\n請用剛剛的 Email / 密碼登入。');
+      if(typeof W.switchLoginTab==='function') W.switchLoginTab('login');
+      if(E('email')) E('email').value=email; if(E('password')) E('password').value='';
+      ['regEmail','regPassword','regCompanyName','regCompanyId','regName','regVendorType','regPhone','regClientNote'].forEach(function(id){var el=E(id); if(el) el.value=''}); if(E('regCapacity')) E('regCapacity').value=80;
+    }catch(err){
+      console.error('v313 register failed',err); W.__v214Registering=false; await safeSignOut();
+      var map={'auth/email-already-in-use':'此 Email 已經註冊過。舊帳號請直接登入；若 users 缺 companyId，請登入後按訊息中心的「修復 companyId」或到 Firestore 手動補 companyId。','auth/invalid-email':'Email 格式不正確。','auth/weak-password':'密碼強度不足（至少 6 碼）。','permission-denied':'Firestore 權限不足：請先到 Firestore Rules 貼上 v312/v313 規則，註冊才可建立 users 與 clients/vendors。'};
+      alert(map[err.code] || (String(err.message||err.code||err).includes('permission')?map['permission-denied']:'註冊失敗：'+(err.message||err.code||err)));
+    }
+  };
+  var oldSwitch=W.switchLoginTab;
+  if(typeof oldSwitch==='function'&&!oldSwitch.__v313CompanyHint){
+    W.switchLoginTab=function(tab){var r=oldSwitch.apply(this,arguments); setTimeout(setCompanyFieldHint,0); return r;};
+    W.switchLoginTab.__v313CompanyHint=true;
+  }
+  if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',setCompanyFieldHint);else setCompanyFieldHint();
+  console.info('OEM HUB v313 loaded: registration writes users.companyId and binds client/vendor master');
+})();
+</script>
+
+
+
+<!-- v314 message write routing fix: Admin -> Vendor/Client and Client/Vendor -> Admin -->
+<script id="v314-message-write-routing-fix">
+(function(){
+  'use strict';
+  var W=window,D=document;
+  function $(id){return D.getElementById(id)}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function norm(v){return String(v==null?'':v).trim()}
+  function roleOf(){return String((W.currentUser&&W.currentUser.role)||'').toLowerCase()}
+  function authUid(){try{return (W.auth&&W.auth.currentUser&&W.auth.currentUser.uid)||''}catch(e){return ''}}
+  function userUid(){return norm((W.currentUser&&W.currentUser.uid)||authUid())}
+  function myCompany(){return norm(W.currentUser&&W.currentUser.companyId)}
+  function nowISO(){return new Date().toISOString()}
+  function nowText(){try{return new Date().toLocaleString('zh-TW',{timeZone:'Asia/Taipei',hour12:false});}catch(e){return new Date().toLocaleString('zh-TW')}}
+  function newId(){return 'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2,7).toUpperCase()}
+  function arr(name){
+    if(Array.isArray(W[name])) return W[name];
+    try{var v=(0,eval)(name); if(Array.isArray(v)) return v;}catch(e){}
+    return [];
+  }
+  function setArr(name,value){
+    W[name]=value;
+    try{(0,eval)(name+' = window["'+name+'"];');}catch(e){}
+  }
+  function idOf(x){return norm(x&& (x.companyId||x.id||x.clientId||x.vendorId||x.code))}
+  function nameOf(x){return norm(x&& (x.name||x.companyName||x.title||x.email||idOf(x)))}
+  function companyName(type,id){
+    var list=type==='vendor'?arr('vendors'):arr('clients');
+    var found=list.find(function(x){return idOf(x)===id});
+    return found?nameOf(found):id;
+  }
+  function threadKey(type,id){return type+':'+id}
+  function normalizeMessage(m){
+    m=m||{};
+    var related=norm(m.relatedCompanyId||m.toCompanyId||m.fromCompanyId||m.companyId);
+    var type=norm(m.threadType||m.toRole||m.audience||m.fromRole);
+    if(type==='admin') type=norm(m.fromRole)==='vendor'?'vendor':'client';
+    if(type!=='vendor'&&type!=='client'){
+      if(norm(m.threadKey).indexOf('vendor:')===0) type='vendor';
+      else if(norm(m.threadKey).indexOf('client:')===0) type='client';
+      else type=norm(m.fromRole)==='vendor'?'vendor':'client';
+    }
+    if(!related && norm(m.threadKey).indexOf(':')>0) related=norm(m.threadKey).split(':').slice(1).join(':');
+    return Object.assign({},m,{relatedCompanyId:related,_companyType:type,_threadKey:threadKey(type,related),_created:norm(m.createdAt||m.time)});
+  }
+  function canSee(m){
+    m=normalizeMessage(m);
+    var r=roleOf();
+    if(r==='admin') return true;
+    var cid=myCompany();
+    if(!cid) return false;
+    return m.relatedCompanyId===cid || norm(m.toCompanyId)===cid || norm(m.fromCompanyId)===cid || norm(m.fromUid)===userUid();
+  }
+  function isMine(m){
+    var r=roleOf();
+    if(norm(m.fromUid)&&norm(m.fromUid)===userUid()) return true;
+    if(r==='admin') return norm(m.fromRole)==='admin';
+    return norm(m.fromRole)===r;
+  }
+  var selectedKey='';
+  function allVisibleMessages(){
+    return arr('messages').map(normalizeMessage).filter(canSee).sort(function(a,b){return String(a._created).localeCompare(String(b._created));});
+  }
+  function buildThreads(){
+    var r=roleOf(), msgs=allVisibleMessages(), map={};
+    function put(type,id,name){if(!id)return;var key=threadKey(type,id); if(!map[key]) map[key]={key:key,type:type,id:id,name:name||id,last:'',lastAt:''};}
+    if(r==='admin'){
+      arr('clients').forEach(function(c){put('client',idOf(c),nameOf(c));});
+      arr('vendors').forEach(function(v){put('vendor',idOf(v),nameOf(v));});
+    }else{
+      var type=r==='vendor'?'vendor':'client';
+      put(type,myCompany(),'Admin 對話');
+    }
+    msgs.forEach(function(m){put(m._companyType,m.relatedCompanyId,companyName(m._companyType,m.relatedCompanyId));var t=map[m._threadKey]; if(t){t.last=m.text||'';t.lastAt=m._created||'';}});
+    return Object.keys(map).map(function(k){return map[k]}).sort(function(a,b){return String(b.lastAt||'').localeCompare(String(a.lastAt||'')) || String(a.name||'').localeCompare(String(b.name||''),'zh-Hant');});
+  }
+  function ensureShell(){
+    var page=$('page-messages'); if(!page) return;
+    var sub=page.querySelector('.page-sub'); if(sub) sub.textContent='v314：訊息採 Admin 中介制，Admin 可指定客戶/廠商；客戶與廠商彼此不會看見。';
+    var old=$('messageList');
+    if(!$('v314MessageShell')){
+      var shell=D.createElement('div'); shell.id='v314MessageShell'; shell.className='v309-shell';
+      shell.innerHTML='<div class="card v309-thread-panel"><div class="v309-thread-head"><div class="v309-thread-title">對話</div></div><div id="v314ThreadList" class="v309-thread-list"></div></div><div class="card v309-chat-card"><div class="v309-chat-head"><div><div id="v314ChatTitle" class="v309-chat-title">訊息中心</div><div id="v314ChatSub" class="v309-chat-sub">選擇對話後即可查看或回覆。</div></div></div><div id="v314Compose" class="v309-compose"></div><div id="v314ChatList" class="v309-chat-list"></div></div>';
+      if(old) old.replaceWith(shell); else page.appendChild(shell);
+    }
+    var firstCard=page.querySelector(':scope > .card');
+    if(firstCard && firstCard.querySelector('#msgAudience')) firstCard.style.display='none';
+  }
+  function renderThreads(){
+    var box=$('v314ThreadList'); if(!box) return;
+    var threads=buildThreads();
+    if(!selectedKey || !threads.some(function(t){return t.key===selectedKey})) selectedKey=(threads[0]&&threads[0].key)||'';
+    box.innerHTML=threads.map(function(t){return '<div class="v309-thread '+(t.key===selectedKey?'active':'')+'" data-key="'+esc(t.key)+'"><div class="v309-thread-top"><div class="v309-thread-name">'+(t.type==='vendor'?'🏭':'👥')+' '+esc(t.name||t.id)+'</div></div><div class="v309-thread-last">'+esc(t.last||'尚無訊息')+'</div></div>';}).join('') || '<div class="v309-empty">目前沒有可用對話。</div>';
+    box.querySelectorAll('.v309-thread').forEach(function(el){el.onclick=function(){selectedKey=this.dataset.key||'';renderMessages();};});
+  }
+  function renderCompose(thread){
+    var box=$('v314Compose'); if(!box) return;
+    var r=roleOf();
+    if(r==='admin'){
+      var type=thread?thread.type:'client', id=thread?thread.id:'';
+      var clientOpts=arr('clients').map(function(c){var cid=idOf(c);return '<option value="client:'+esc(cid)+'" '+(type==='client'&&cid===id?'selected':'')+'>客戶｜'+esc(nameOf(c)||cid)+'</option>';}).join('');
+      var vendorOpts=arr('vendors').map(function(v){var vid=idOf(v);return '<option value="vendor:'+esc(vid)+'" '+(type==='vendor'&&vid===id?'selected':'')+'>廠商｜'+esc(nameOf(v)||vid)+'</option>';}).join('');
+      box.className='v309-compose';
+      box.innerHTML='<div><label>回覆對象</label><select id="v314TargetSelect">'+clientOpts+vendorOpts+'</select></div><div><label>訊息</label><input id="v314MsgText" placeholder="輸入訊息"></div><div><button class="btn btn-primary" id="v314SendBtn" type="button">送出</button></div>';
+      var sel=$('v314TargetSelect'); if(sel) sel.onchange=function(){selectedKey=this.value;renderMessages();};
+    }else{
+      box.className='v309-compose clientish';
+      box.innerHTML='<div><label>訊息</label><input id="v314MsgText" placeholder="輸入要傳給 Admin 的訊息"></div><div><button class="btn btn-primary" id="v314SendBtn" type="button">送出</button></div>';
+    }
+    var btn=$('v314SendBtn'); if(btn) btn.onclick=addMessage;
+    var input=$('v314MsgText'); if(input) input.onkeydown=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();addMessage();}};
+  }
+  function renderChat(){
+    var threads=buildThreads(), thread=threads.find(function(t){return t.key===selectedKey});
+    var list=$('v314ChatList'), title=$('v314ChatTitle'), sub=$('v314ChatSub'); if(!list) return;
+    if(!thread){ if(title)title.textContent='訊息中心'; if(sub)sub.textContent='目前沒有對話。'; renderCompose(null); list.innerHTML='<div class="v309-empty">目前沒有訊息。</div>'; return; }
+    if(title) title.textContent=roleOf()==='admin' ? ((thread.type==='vendor'?'廠商｜':'客戶｜')+(thread.name||thread.id)) : 'Admin 對話';
+    if(sub) sub.textContent=roleOf()==='admin' ? ('公司 ID：'+thread.id+'｜此對話只會在 Admin 與該公司帳號之間顯示。') : '你的訊息只會送給 Admin。';
+    renderCompose(thread);
+    var tmsgs=allVisibleMessages().filter(function(m){return m._threadKey===thread.key});
+    list.innerHTML=tmsgs.map(function(m){var mine=isMine(m);var who=norm(m.fromRole)==='admin'?'Admin':(norm(m.fromRole)==='vendor'?'Vendor':'Client');return '<div class="v309-bubble '+(mine?'mine':'other')+'"><div class="v309-bubble-meta"><span>'+esc(who)+'</span><span>'+esc(m.time||m.createdAt||'')+'</span></div><div class="v309-bubble-text">'+esc(m.text||'')+'</div></div>';}).join('') || '<div class="v309-empty">這個對話目前沒有訊息。</div>';
+    setTimeout(function(){try{list.scrollTop=list.scrollHeight;}catch(e){}},0);
+  }
+  function renderMessages(){ensureShell();renderThreads();renderChat();}
+  async function refreshMessages(){
+    if(!W.db || !W.db.collection) return;
+    try{
+      var q=W.db.collection('messages');
+      if(roleOf()!=='admin') q=q.where('relatedCompanyId','==',myCompany());
+      var snap=await q.get();
+      var rows=[]; snap.forEach(function(d){rows.push(Object.assign({id:d.id},d.data()||{}));});
+      setArr('messages',rows);
+    }catch(e){console.warn('v314 refresh messages failed',e);}
+  }
+  async function saveMessage(msg){
+    if(!W.db || !W.db.collection) throw new Error('Firebase 尚未就緒');
+    await W.db.collection('messages').doc(String(msg.id)).set(msg,{merge:true});
+  }
+  async function addMessage(){
+    var input=$('v314MsgText')||$('msgText');
+    var text=norm(input&&input.value); if(!text) return;
+    var r=roleOf(), u=W.currentUser||{}, uid=userUid();
+    if(!uid){alert('找不到登入 uid，請重新登入。');return;}
+    var companyType, relatedCompanyId, audience, toRole, toCompanyId, fromCompanyId;
+    if(r==='admin'){
+      var val=($('v314TargetSelect')&&$('v314TargetSelect').value)||selectedKey||'';
+      var parts=val.split(':'); companyType=parts[0]||'client'; relatedCompanyId=parts.slice(1).join(':');
+      if(companyType!=='client'&&companyType!=='vendor') companyType='client';
+      if(!relatedCompanyId){alert('請先選擇客戶或廠商。');return;}
+      audience=companyType; toRole=companyType; toCompanyId=relatedCompanyId; fromCompanyId='ADMIN';
+    }else{
+      relatedCompanyId=myCompany();
+      if(!relatedCompanyId){alert('這個帳號尚未綁定 companyId，請先修復 users 身分。');return;}
+      companyType=r==='vendor'?'vendor':'client'; audience='admin'; toRole='admin'; toCompanyId='ADMIN'; fromCompanyId=relatedCompanyId;
+    }
+    var msg={
+      id:newId(),
+      from:r==='admin'?'Admin':(u.name||u.email||relatedCompanyId||r),
+      fromUid:uid,
+      fromRole:r||'user',
+      fromCompanyId:fromCompanyId,
+      audience:audience,
+      relatedCompanyId:relatedCompanyId,
+      toRole:toRole,
+      toCompanyId:toCompanyId,
+      text:text,
+      time:nowText(),
+      createdAt:nowISO(),
+      brokerMode:true,
+      threadType:companyType,
+      threadKey:threadKey(companyType,relatedCompanyId),
+      source:'v314-message-routing-fix'
+    };
+    var btn=$('v314SendBtn')||$('v309SendBtn'); if(btn){btn.disabled=true;btn.textContent='送出中...';}
+    try{
+      await saveMessage(msg);
+      var rows=arr('messages').filter(function(x){return String(x.id)!==String(msg.id)}); rows.push(msg); setArr('messages',rows);
+      if(input) input.value='';
+      selectedKey=threadKey(companyType,relatedCompanyId);
+      renderMessages();
+      setTimeout(refreshMessages,300);
+      if(typeof W.updateBadges==='function') W.updateBadges();
+      console.info('v314 message saved',msg);
+    }catch(e){
+      console.error('v314 message save failed',e,msg);
+      alert('訊息送出失敗：'+(e.message||e.code||e)+'\n\n請確認 Rules 的 messages create 允許 signedIn + fromUid == request.auth.uid。');
+    }finally{ if(btn){btn.disabled=false;btn.textContent='送出';} }
+  }
+  W.addMessage=addMessage;
+  W.renderMessages=renderMessages;
+  W.v314RefreshMessages=async function(){await refreshMessages();renderMessages();};
+  var oldShow=W.showPage;
+  if(typeof oldShow==='function'&&!oldShow.__v314MessageRoutingFix){
+    W.showPage=function(id){var r=oldShow.apply(this,arguments); if(id==='messages')setTimeout(function(){refreshMessages().then(renderMessages);},120); return r;};
+    W.showPage.__v314MessageRoutingFix=true;
+  }
+  function init(){
+    try{D.title='OEM HUB v314'; var logo=D.querySelector('.logo'); if(logo)logo.innerHTML='OEM<span>·HUB</span>'; }catch(e){}
+    if($('page-messages')&&$('page-messages').classList.contains('active')) refreshMessages().then(renderMessages); else renderMessages();
+  }
+  if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',function(){setTimeout(init,300)}); else setTimeout(init,300);
+  console.info('OEM HUB v314 loaded: message write routing fixed');
+})();
+</script>
+
+
+
+<script id="v315-message-single-ui-fix">
+(function(){
+  var W=window,D=document;
+  function $(id){return D.getElementById(id)}
+  function cleanMessageDuplicates(){
+    var page=$('page-messages'); if(!page) return;
+    // Hide legacy message compose/list card from v296-v300.
+    var legacyCard = $('msgAudience') ? $('msgAudience').closest('.card') : null;
+    if(legacyCard){
+      legacyCard.style.display='none';
+      legacyCard.setAttribute('data-v315-hidden','legacy-compose');
+    }
+    // Hide the older v309 message shell. v314/v315 shell is the only active UI.
+    var oldShell=$('v309MessageShell');
+    if(oldShell){
+      oldShell.style.display='none';
+      oldShell.setAttribute('data-v315-hidden','old-v309-shell');
+    }
+    // If multiple active v314 shells were accidentally created, keep only the newest one.
+    var shells=[].slice.call(page.querySelectorAll('.v309-shell'));
+    var active=shells.filter(function(el){return el.id==='v314MessageShell' || el.id==='v315MessageShell';});
+    if(active.length>1){
+      active.slice(0,-1).forEach(function(el){el.style.display='none';el.setAttribute('data-v315-hidden','duplicate-shell');});
+    }
+    var shell=$('v314MessageShell') || $('v315MessageShell');
+    if(shell){
+      shell.style.display='grid';
+      shell.style.marginTop='16px';
+    }
+    var sub=page.querySelector('.page-sub');
+    if(sub) sub.textContent='v315：訊息中心單一化，已移除舊版無功能視窗；Admin 可指定客戶/廠商，客戶與廠商彼此不會看見。';
+  }
+  function install(){
+    try{D.title='OEM HUB v315 Message Single UI';}catch(e){}
+    cleanMessageDuplicates();
+    var oldRender=W.renderMessages;
+    if(typeof oldRender==='function' && !oldRender.__v315SingleUI){
+      W.renderMessages=function(){
+        var r=oldRender.apply(this,arguments);
+        cleanMessageDuplicates();
+        return r;
+      };
+      W.renderMessages.__v315SingleUI=true;
+    }
+    var oldShow=W.showPage;
+    if(typeof oldShow==='function' && !oldShow.__v315SingleUI){
+      W.showPage=function(id){
+        var r=oldShow.apply(this,arguments);
+        if(id==='messages') setTimeout(cleanMessageDuplicates,80);
+        return r;
+      };
+      W.showPage.__v315SingleUI=true;
+    }
+    if($('page-messages') && $('page-messages').classList.contains('active')){
+      setTimeout(function(){try{ if(typeof W.renderMessages==='function') W.renderMessages(); else cleanMessageDuplicates(); }catch(e){cleanMessageDuplicates();}},120);
+    }
+    console.info('OEM HUB v315 loaded: message center single UI fix');
+  }
+  if(D.readyState==='loading') D.addEventListener('DOMContentLoaded',function(){setTimeout(install,500)}); else setTimeout(install,500);
+})();
+</script>
 </body>
 </html>
