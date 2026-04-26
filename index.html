@@ -3059,9 +3059,23 @@ service cloud.firestore {
 
     match /messages/{id} {
       allow read: if isAdmin()
-        || (signedIn() && resource.data.relatedCompanyId == companyId())
-        || (signedIn() && resource.data.fromUid == request.auth.uid);
-      allow create: if signedIn();
+        || (signedIn() && resource.data.fromUid == request.auth.uid)
+        || (signedIn()
+          && resource.data.relatedCompanyId == companyId()
+          && (
+            (role() == 'client' && resource.data.audience in ['admin','client'])
+            || (role() == 'vendor' && resource.data.audience in ['admin','vendor'])
+          ));
+      allow create: if signedIn() && (
+        isAdmin()
+        || (
+          request.resource.data.fromUid == request.auth.uid
+          && request.resource.data.fromRole == role()
+          && request.resource.data.fromCompanyId == companyId()
+          && request.resource.data.relatedCompanyId == companyId()
+          && request.resource.data.audience == 'admin'
+        )
+      );
       allow update, delete: if isAdmin();
     }
 
@@ -3073,14 +3087,21 @@ service cloud.firestore {
     // 自助註冊時可建立自己的 client/vendor 主檔
     match /clients/{id} {
       allow read: if isAdmin() || (role() == 'client' && id == companyId());
-      allow create: if signedIn() && request.resource.data.id == request.auth.token.email.split('@')[0]
-        || (signedIn() && request.resource.data.id != null);
+      allow create: if signedIn()
+        && role() == 'client'
+        && id == companyId()
+        && request.resource.data.id == companyId()
+        && request.resource.data.companyId == companyId();
       allow write: if isAdmin();
     }
 
     match /vendors/{id} {
       allow read: if isAdmin() || (role() == 'vendor' && id == companyId());
-      allow create: if signedIn();
+      allow create: if signedIn()
+        && role() == 'vendor'
+        && id == companyId()
+        && request.resource.data.id == companyId()
+        && request.resource.data.companyId == companyId();
       allow write: if isAdmin();
     }
 
@@ -14164,8 +14185,10 @@ body.oem-v290-app-mode .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,
   function canSeeMessage(m){
     const u=W.currentUser||{},role=roleOf(); if(role==='admin')return true;
     const cid=String(u.companyId||''); if(!cid)return false;
-    const related=String(m.relatedCompanyId||m.companyId||m.fromCompanyId||''); if(related!==cid)return false;
-    return m.fromRole==='admin'||m.fromRole===role||m.fromUid===u.uid||m.audience==='admin'||m.audience===role;
+    // v312: do not use fromCompanyId as visibility fallback; only the explicit conversation company can grant visibility.
+    const related=String(m.relatedCompanyId||m.companyId||''); if(related!==cid)return false;
+    // Broker mode: client/vendor only see their own conversation with Admin, not peer-to-peer messages.
+    return m.fromUid===u.uid || m.fromRole==='admin' || m.audience==='admin' || m.audience===role;
   }
   function labelFor(m){
     const from=m.fromRole==='admin'?'Admin':`${m.fromRole==='vendor'?'Vendor':'Client'}：${companyName(m.fromRole,m.fromCompanyId||m.relatedCompanyId)}`;
@@ -15064,9 +15087,8 @@ body.oem-v290-app-mode .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,
 })();
 </script>
 
-</body>
-</html>
 
+<!-- v312 structural fix: moved late patches before closing body -->
 <script id="v303-existing-master-link-register">
 (function(){
   function E(id){ return document.getElementById(id); }
@@ -15164,7 +15186,8 @@ body.oem-v290-app-mode .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,
     W.showPage.__v308CleanUI=true;
   }
   if(D.readyState==='loading')D.addEventListener('DOMContentLoaded',()=>setTimeout(cleanUI,300));else setTimeout(cleanUI,300);
-  setInterval(cleanUI,1500);
+  // v312: run once only; avoid fighting later UI/version updates.
+  W.v308CleanUIOnce = cleanUI;
 })();
 </script>
 
@@ -15318,3 +15341,6 @@ body.oem-v290-app-mode .kpis{grid-template-columns:repeat(auto-fit,minmax(170px,
   console.info('OEM HUB v311 loaded: admin message target dropdown reads clients + vendors');
 })();
 </script>
+
+</body>
+</html>
